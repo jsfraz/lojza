@@ -1,5 +1,7 @@
 package cz.jsfraz.lojza;
 
+import java.io.IOException;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
@@ -21,27 +23,34 @@ public class App {
                 // settings singleton
                 SettingSingleton settings = SettingSingleton.GetInstance();
 
+                // text localization
+                try {
+                        settings.setLocalization(Tools.getLocalization());
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+
                 // discord token
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
-                // TODO other ENVs to singleton setttings
 
                 // localization function for command descriptions
                 final LocalizationFunction localizationFunction = ResourceBundleLocalizationFunction
-                                .fromBundles("slashCommands", DiscordLocale.CZECH)
+                                .fromBundles("commandLocalization/slashCommands", DiscordLocale.CZECH)
                                 .build();
+
+                // FIXME subcommand option localization doesnt work
                 // slash commands
                 settings.setCommandSets(new CommandSet[] {
                                 // help commands
                                 new CommandSet(CommandCategory.categoryHelp, ":information_source:", new CommandData[] {
-                                                // /help command
+                                                // help command
                                                 Commands.slash("help", "Shows available commands for this bot.")
                                                                 .setLocalizationFunction(localizationFunction)
                                 }),
                                 // admin commands
-                                new CommandSet(CommandCategory.categoryAdmin, ":wrench:", new CommandData[] {
-                                                // /clear command
+                                new CommandSet(CommandCategory.categoryAdmin, ":shield:", new CommandData[] {
+                                                // delete command
                                                 Commands.slash("delete", "Deletes messages from the text channel.")
-                                                                // TODO localize
                                                                 .setLocalizationFunction(localizationFunction)
                                                                 // subcommands
                                                                 .addSubcommands(
@@ -51,19 +60,69 @@ public class App {
                                                                                 // deletes specific number of messages
                                                                                 new SubcommandData("count",
                                                                                                 "Deletes specific number of messages from the text channel.")
-                                                                                                // number of messages to
-                                                                                                // delete
-                                                                                                .addOptions(new OptionData(
-                                                                                                                OptionType.INTEGER,
-                                                                                                                "count",
-                                                                                                                "Number of messages to delete.")
-                                                                                                                // required
-                                                                                                                .setRequired(true)
-                                                                                                                // valid
-                                                                                                                // range
-                                                                                                                .setRequiredRange(
-                                                                                                                                2,
-                                                                                                                                1000)))
+                                                                                                .addOptions(
+                                                                                                                // messages
+                                                                                                                // to
+                                                                                                                // delete
+                                                                                                                new OptionData(
+                                                                                                                                OptionType.INTEGER,
+                                                                                                                                "count",
+                                                                                                                                "Number of messages to delete.")
+                                                                                                                                // required
+                                                                                                                                .setRequired(true)
+                                                                                                                                // valid
+                                                                                                                                // range
+                                                                                                                                .setRequiredRange(
+                                                                                                                                                2,
+                                                                                                                                                1000)))
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR))
+                                }),
+                                new CommandSet(CommandCategory.categoryDev, ":technologist:", new CommandData[] {
+                                                // test command
+                                                Commands.slash("test", "Command for testing purposes.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                // subcommands
+                                                                .addSubcommands(
+                                                                                // test localization
+                                                                                new SubcommandData("localization",
+                                                                                                "For testing localiztion.")
+                                                                                                .addOptions(
+                                                                                                                // locale
+                                                                                                                // to
+                                                                                                                // choose
+                                                                                                                new OptionData(OptionType.STRING,
+                                                                                                                                "locale",
+                                                                                                                                "Locale for testing.")
+                                                                                                                                // locale
+                                                                                                                                // chocies
+                                                                                                                                .addChoices(Tools
+                                                                                                                                                .getChoicesFromKeys(
+                                                                                                                                                                settings.getLocalization()
+                                                                                                                                                                                .keySet()))
+                                                                                                                                .setRequired(true),
+                                                                                                                // name
+                                                                                                                // of
+                                                                                                                // string
+                                                                                                                new OptionData(OptionType.STRING,
+                                                                                                                                "text",
+                                                                                                                                "Name of string.")
+                                                                                                                                // name
+                                                                                                                                // choices
+                                                                                                                                .addChoices(Tools
+                                                                                                                                                .getChoicesFromKeys(
+                                                                                                                                                                settings.getLocalization()
+                                                                                                                                                                                .get(settings.getLocalization()
+                                                                                                                                                                                                .entrySet()
+                                                                                                                                                                                                .iterator()
+                                                                                                                                                                                                .next()
+                                                                                                                                                                                                .getKey())
+                                                                                                                                                                                .keySet()))
+                                                                                                                                // required
+                                                                                                                                .setRequired(true)))
                                                                 // guild-only command
                                                                 .setGuildOnly(true)
                                                                 // admin-only command

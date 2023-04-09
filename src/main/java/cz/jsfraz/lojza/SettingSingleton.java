@@ -1,11 +1,15 @@
 package cz.jsfraz.lojza;
 
+import java.util.Map;
+
 public class SettingSingleton {
     private static SettingSingleton instance;
+    private Map<String, Map<String, String>> localization;
     private CommandSet[] commandSets;
     private String discordToken;
 
-    private SettingSingleton() {}
+    private SettingSingleton() {
+    }
 
     public static SettingSingleton GetInstance() {
         if (instance == null) {
@@ -15,6 +19,10 @@ public class SettingSingleton {
     }
 
     /* Getters */
+
+    public Map<String, Map<String, String>> getLocalization() {
+        return this.localization;
+    }
 
     public CommandSet[] getCommandSets() {
         return this.commandSets;
@@ -26,12 +34,15 @@ public class SettingSingleton {
 
     /* Setters */
 
+    public void setLocalization(Map<String, Map<String, String>> localization) {
+        this.localization = localization;
+    }
+
     public void setCommandSets(CommandSet[] commandCategories) {
         this.commandSets = commandCategories;
     }
 
-    public void setDiscordToken(String token)
-    {
+    public void setDiscordToken(String token) {
         this.discordToken = token;
     }
 }

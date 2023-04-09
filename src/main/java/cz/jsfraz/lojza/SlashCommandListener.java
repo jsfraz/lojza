@@ -18,6 +18,13 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class SlashCommandListener extends ListenerAdapter {
+    private ILocalization localizationManager;
+
+    public SlashCommandListener() {
+        this.localizationManager = new Localization();
+        this.localizationManager.setLocalization(SettingSingleton.GetInstance().getLocalization());
+    }
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         ;
@@ -33,6 +40,10 @@ public class SlashCommandListener extends ListenerAdapter {
                 break;
             case "delete count": // delete count command
                 deleteCountCommand(event);
+                break;
+
+            case "test localization":
+                testLocalization(event);
                 break;
 
             // no match
@@ -55,6 +66,7 @@ public class SlashCommandListener extends ListenerAdapter {
                 "Parametry označené jako `[parametr]` jsou **povinné**, parametry označené jako `(parametr)` jsou **volitelné**.",
                 false);
 
+        int fieldCount = 0;
         // TODO future support for SubcommandGroups
         for (CommandSet commandSet : commandSets) {
             String commands = "";
@@ -92,18 +104,24 @@ public class SlashCommandListener extends ListenerAdapter {
                 }
             }
             // TODO localize category name
-            eb.addField("**" + commandSet.getDisplayEmoji() + " " + commandSet.getCategory() + "**", commands, true);
+            Boolean inline = true;
+            if (fieldCount != 0 && fieldCount % 2 == 0) {
+                inline = false;
+            }
+            eb.addField("**" + commandSet.getDisplayEmoji() + " " + commandSet.getCategory() + "**", commands, inline);
+            fieldCount++;
         }
 
-        // replies with embed
+        // reply with embed
         event.replyEmbeds(eb.build()).queue();
     }
 
     // delete all messages
     private void deleteAllCommand(SlashCommandInteractionEvent event) {
-        // reply with button menu
         // TODO localize
         String userId = event.getUser().getId();
+
+        // reply with button menu
         event.reply("This will delete all messages.\nAre you sure you want to proceed?")
                 .addActionRow(Button.primary(userId + ":deleteAll", "Hell yeah"),
                         Button.secondary(userId + ":cancel", "Nah"))
@@ -115,12 +133,12 @@ public class SlashCommandListener extends ListenerAdapter {
     private void deleteCountCommand(SlashCommandInteractionEvent event) {
         // count option
         OptionMapping countOption = event.getOption("count");
-        int count = countOption.getAsInt();
+
         // reply with button menu
         // TODO localize
         String userId = event.getUser().getId();
-        event.reply("This will delete " + count + " messages.\nAre you sure you want to proceed?")
-                .addActionRow(Button.primary(userId + ":deleteCount:" + count, "Hell yeah"),
+        event.reply("This will delete " + countOption.getAsInt() + " messages.\nAre you sure you want to proceed?")
+                .addActionRow(Button.primary(userId + ":deleteCount:" + countOption.getAsInt(), "Hell yeah"),
                         Button.secondary(userId + ":cancel", "Nah"))
                 .queue();
     }
@@ -173,5 +191,17 @@ public class SlashCommandListener extends ListenerAdapter {
                 event.getHook().deleteOriginal().queue();
                 break;
         }
+    }
+
+    // test localization
+    private void testLocalization(SlashCommandInteractionEvent event) {
+        // locale option
+        OptionMapping localeOption = event.getOption("locale");
+        // name option
+        OptionMapping nameOption = event.getOption("text");
+
+        // reply
+        event.reply("`" + localeOption.getAsString() + "`, `" + nameOption.getAsString() + "`: "
+                + localizationManager.getTranslation(localeOption.getAsString(), nameOption.getAsString())).queue();
     }
 }
