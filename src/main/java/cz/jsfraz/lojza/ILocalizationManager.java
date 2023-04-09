@@ -2,8 +2,8 @@ package cz.jsfraz.lojza;
 
 import java.util.Map;
 
-public interface ILocalization {
+public interface ILocalizationManager {
     void setLocalization(Map<String, Map<String, String>> localization);
 
-    String getTranslation(String locale, String name);
+    String getText(String locale, String name);
 }

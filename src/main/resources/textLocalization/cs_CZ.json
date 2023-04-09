@@ -1,3 +1,14 @@
 {
-    "devHello": "Ahoj, světe!"
+    "devHello": "Ahoj, světe!",
+    "errorCommandHandle": "Asi jsme si nějak neporozumněli, nemám páru co by měl ten příkaz dělat.",
+    "textHelpTitle": "Příkazy",
+    "textHelpDesc": "Volání příkazů",
+    "textHelpCommands": "Parametry označené jako `[parametr]` jsou **povinné**, parametry označené jako `(parametr)` jsou **volitelné**.",
+    "textDeleteMessagesAll": "Hele dobře si to rozmysli, smaže to všechny zprávy z tohohle kanálu.\nFakt to chceš udělat?",
+    "textDeleteMessagesCount": "Hele dobře si to rozmysli, smaže to celkem **%s zpráv** z tohohle kanálu.\nFakt to chceš udělat?",
+    "textYes": "Jasně",
+    "textNo": "Ne no",
+    "categoryHelp": "Nápověda",
+    "categoryAdmin": "Admin",
+    "categoryDev": "Vývoj"
 }

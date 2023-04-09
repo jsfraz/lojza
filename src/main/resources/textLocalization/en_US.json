@@ -1,3 +1,14 @@
 {
-    "devHello": "Hello, World!"
+    "devHello": "Hello, World!",
+    "errorCommandHandle": "I guess we're having a misunderstanding, I have no idea what that command is supposed to do.",
+    "textHelpTitle": "Commands",
+    "textHelpDescTitle": "Command calling",
+    "textHelpDesc": "Parameters marked as `[parameter]` are **required**, parameters marked as `(parameter)` are **optional**.",
+    "textDeleteMessagesAll": "Think carefully, it will delete all messages from this channel.",
+    "textDeleteMessagesCount": "Think carefully, it will delete a total of **%s messages** from this channel.",
+    "textYes": "Hell yea",
+    "textNo": "Nah",
+    "categoryHelp": "Help",
+    "categoryAdmin": "Admin",
+    "categoryDev": "Developement"
 }

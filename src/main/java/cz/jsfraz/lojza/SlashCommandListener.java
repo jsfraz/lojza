@@ -18,52 +18,55 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class SlashCommandListener extends ListenerAdapter {
-    private ILocalization localizationManager;
+    private ILocalizationManager lm;
 
     public SlashCommandListener() {
-        this.localizationManager = new Localization();
-        this.localizationManager.setLocalization(SettingSingleton.GetInstance().getLocalization());
+        this.lm = new LocalizationManager();
+        this.lm.setLocalization(SettingSingleton.GetInstance().getLocalization());
     }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        ;
+        // TODO get server locale
+        // server locale
+        final String locale = "en_US";
+
         switch (event.getFullCommandName()) {
             /* Help commands */
             case "help": // help command
-                helpCommand(event);
+                helpCommand(event, locale);
                 break;
 
             /* Admin commands */
             case "delete all": // delete all command
-                deleteAllCommand(event);
+                deleteAllCommand(event, locale);
                 break;
             case "delete count": // delete count command
-                deleteCountCommand(event);
+                deleteCountCommand(event, locale);
                 break;
 
-            case "test localization":
-                testLocalization(event);
+            case "test localization": // test localization command
+                testLocalization(event, locale);
                 break;
 
             // no match
             default:
-                event.reply("I can't handle that command right now :(").queue(); // TODO localize
+                event.reply(lm.getText(locale, "errorCommandHandle")).queue();
         }
     }
 
     // help
-    private void helpCommand(SlashCommandInteractionEvent event) {
+    private void helpCommand(SlashCommandInteractionEvent event, String locale) {
         // command categories
         CommandSet[] commandSets = SettingSingleton.GetInstance().getCommandSets();
 
         // embed
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("Commands"); // TODO localize
+        eb.setTitle(lm.getText(locale, "textHelpTitle"));
         eb.setColor(Color.yellow);
 
-        eb.addField("Volání příkazů",
-                "Parametry označené jako `[parametr]` jsou **povinné**, parametry označené jako `(parametr)` jsou **volitelné**.",
+        eb.addField(lm.getText(locale, "textHelpDescTitle"),
+                lm.getText(locale, "textHelpDesc"),
                 false);
 
         int fieldCount = 0;
@@ -103,12 +106,13 @@ public class SlashCommandListener extends ListenerAdapter {
                     }
                 }
             }
-            // TODO localize category name
+
             Boolean inline = true;
             if (fieldCount != 0 && fieldCount % 2 == 0) {
                 inline = false;
             }
-            eb.addField("**" + commandSet.getDisplayEmoji() + " " + commandSet.getCategory() + "**", commands, inline);
+            eb.addField("**" + commandSet.getDisplayEmoji() + " " + lm.getText(locale, commandSet.getCategory().name())
+                    + "**", commands, inline);
             fieldCount++;
         }
 
@@ -117,29 +121,28 @@ public class SlashCommandListener extends ListenerAdapter {
     }
 
     // delete all messages
-    private void deleteAllCommand(SlashCommandInteractionEvent event) {
-        // TODO localize
+    private void deleteAllCommand(SlashCommandInteractionEvent event, String locale) {
         String userId = event.getUser().getId();
-
         // reply with button menu
-        event.reply("This will delete all messages.\nAre you sure you want to proceed?")
-                .addActionRow(Button.primary(userId + ":deleteAll", "Hell yeah"),
-                        Button.secondary(userId + ":cancel", "Nah"))
+        event.reply(lm.getText(locale, "textDeleteMessagesAll"))
+                .addActionRow(Button.primary(userId + ":deleteAll", lm.getText(locale, "textYes")),
+                        Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
                 .queue();
     }
 
     // delete specific number of messages
     // https://github.com/DV8FromTheWorld/JDA/blob/master/src/examples/java/SlashBotExample.java#L195
-    private void deleteCountCommand(SlashCommandInteractionEvent event) {
+    private void deleteCountCommand(SlashCommandInteractionEvent event, String locale) {
         // count option
         OptionMapping countOption = event.getOption("count");
 
         // reply with button menu
-        // TODO localize
         String userId = event.getUser().getId();
-        event.reply("This will delete " + countOption.getAsInt() + " messages.\nAre you sure you want to proceed?")
-                .addActionRow(Button.primary(userId + ":deleteCount:" + countOption.getAsInt(), "Hell yeah"),
-                        Button.secondary(userId + ":cancel", "Nah"))
+        event.reply(String.format(lm.getText(locale, "textDeleteMessagesCount"), countOption.getAsInt()))
+                .addActionRow(
+                        Button.primary(userId + ":deleteCount:" + countOption.getAsInt(),
+                                lm.getText(locale, "textYes")),
+                        Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
                 .queue();
     }
 
@@ -194,7 +197,7 @@ public class SlashCommandListener extends ListenerAdapter {
     }
 
     // test localization
-    private void testLocalization(SlashCommandInteractionEvent event) {
+    private void testLocalization(SlashCommandInteractionEvent event, String locale) {
         // locale option
         OptionMapping localeOption = event.getOption("locale");
         // name option
@@ -202,6 +205,6 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // reply
         event.reply("`" + localeOption.getAsString() + "`, `" + nameOption.getAsString() + "`: "
-                + localizationManager.getTranslation(localeOption.getAsString(), nameOption.getAsString())).queue();
+                + lm.getText(localeOption.getAsString(), nameOption.getAsString())).queue();
     }
 }
