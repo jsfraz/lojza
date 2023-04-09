@@ -7,9 +7,9 @@ public class CommandSet {
     private String displayEmoji;
     public CommandData[] commands;
 
-    public CommandSet(CommandCategory name, String emoji, CommandData[] commands) {
-        this.category = name;
-        this.displayEmoji = emoji;
+    public CommandSet(CommandCategory category, String displayEmoji, CommandData[] commands) {
+        this.category = category;
+        this.displayEmoji = displayEmoji;
         this.commands = commands;
     }
 

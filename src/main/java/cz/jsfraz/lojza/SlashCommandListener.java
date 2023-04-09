@@ -1,6 +1,8 @@
 package cz.jsfraz.lojza;
 
 import java.awt.Color;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +47,18 @@ public class SlashCommandListener extends ListenerAdapter {
                 deleteCountCommand(event, locale);
                 break;
 
+            /* Fun commands */
+            case "greet": // greet user
+                greetCommand(event, locale);
+                break;
+
+            /* Developer commands */
             case "test localization": // test localization command
                 testLocalization(event, locale);
+                break;
+
+            case "info": // gets system info
+                infoCommand(event, locale);
                 break;
 
             // no match
@@ -69,7 +81,6 @@ public class SlashCommandListener extends ListenerAdapter {
                 lm.getText(locale, "textHelpDesc"),
                 false);
 
-        int fieldCount = 0;
         // TODO future support for SubcommandGroups
         for (CommandSet commandSet : commandSets) {
             String commands = "";
@@ -107,13 +118,8 @@ public class SlashCommandListener extends ListenerAdapter {
                 }
             }
 
-            Boolean inline = true;
-            if (fieldCount != 0 && fieldCount % 2 == 0) {
-                inline = false;
-            }
             eb.addField("**" + commandSet.getDisplayEmoji() + " " + lm.getText(locale, commandSet.getCategory().name())
-                    + "**", commands, inline);
-            fieldCount++;
+                    + "**", commands, true);
         }
 
         // reply with embed
@@ -196,7 +202,12 @@ public class SlashCommandListener extends ListenerAdapter {
         }
     }
 
-    // test localization
+    // greet command
+    private void greetCommand(SlashCommandInteractionEvent event, String locale) {
+        event.reply(lm.getText(locale, "textGreet")).queue();
+    }
+
+    // test localization command
     private void testLocalization(SlashCommandInteractionEvent event, String locale) {
         // locale option
         OptionMapping localeOption = event.getOption("locale");
@@ -206,5 +217,33 @@ public class SlashCommandListener extends ListenerAdapter {
         // reply
         event.reply("`" + localeOption.getAsString() + "`, `" + nameOption.getAsString() + "`: "
                 + lm.getText(localeOption.getAsString(), nameOption.getAsString())).queue();
+    }
+
+    // info command
+    private void infoCommand(SlashCommandInteractionEvent event, String locale) {
+        // os info
+        String osName = System.getProperty("os.name");
+        String osVersion = System.getProperty("os.version");
+        String osArch = System.getProperty("os.arch");
+        // java version
+        String javaVersion = System.getProperty("java.version");
+        // uptime
+        LocalDateTime started = SettingSingleton.GetInstance().getStarted();
+        Duration uptime = Duration.between(started, LocalDateTime.now());
+        // https://www.baeldung.com/java-ms-to-hhmmss
+        long HH = uptime.toHours();
+        long MM = uptime.toMinutesPart();
+        long SS = uptime.toSecondsPart();
+
+        // embed
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle(lm.getText(locale, "textStatusTitle"));
+        eb.setColor(Color.yellow);
+        eb.addField(lm.getText(locale, "textOsTitle"), osName + " " + osVersion + " (" + osArch + ")", false);
+        eb.addField(lm.getText(locale, "textJavaVerTitle"), javaVersion, false);
+        eb.addField(lm.getText(locale, "textUptimeTitle"), String.format("%02d:%02d:%02d", HH, MM, SS), false);
+
+        // reply with embed
+        event.replyEmbeds(eb.build()).queue();
     }
 }

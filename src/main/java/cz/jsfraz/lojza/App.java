@@ -1,6 +1,7 @@
 package cz.jsfraz.lojza;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -20,16 +21,18 @@ import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 public class App {
         public static void main(String[] args) {
+                LocalDateTime started = LocalDateTime.now();
+
                 // settings singleton
                 SettingSingleton settings = SettingSingleton.GetInstance();
-
+                // start time
+                settings.setStarted(started);
                 // text localization
                 try {
                         settings.setLocalization(Tools.getLocalization());
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
-
                 // discord token
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
 
@@ -81,6 +84,14 @@ public class App {
                                                                 .setDefaultPermissions(DefaultMemberPermissions
                                                                                 .enabledFor(Permission.ADMINISTRATOR))
                                 }),
+                                // fun commands (it's difficult, because fun is subjective thing...)
+                                new CommandSet(CommandCategory.categoryFun, ":zany_face:", new CommandData[] {
+                                                // greet command
+                                                Commands.slash("greet",
+                                                                "He just says hi, like I don't know what else to write here.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                }),
+                                // developer commands
                                 new CommandSet(CommandCategory.categoryDev, ":technologist:", new CommandData[] {
                                                 // test command
                                                 Commands.slash("test", "Command for testing purposes.")
@@ -127,7 +138,11 @@ public class App {
                                                                 .setGuildOnly(true)
                                                                 // admin-only command
                                                                 .setDefaultPermissions(DefaultMemberPermissions
-                                                                                .enabledFor(Permission.ADMINISTRATOR))
+                                                                                .enabledFor(Permission.ADMINISTRATOR)),
+                                                // info command
+                                                Commands.slash("info",
+                                                                "Gets system info.")
+                                                                .setLocalizationFunction(localizationFunction)
                                 })
                 });
 

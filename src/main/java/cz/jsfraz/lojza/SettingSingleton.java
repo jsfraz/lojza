@@ -1,9 +1,11 @@
 package cz.jsfraz.lojza;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class SettingSingleton {
     private static SettingSingleton instance;
+    private LocalDateTime started;
     private Map<String, Map<String, String>> localization;
     private CommandSet[] commandSets;
     private String discordToken;
@@ -20,6 +22,10 @@ public class SettingSingleton {
 
     /* Getters */
 
+    public LocalDateTime getStarted() {
+        return this.started;
+    }
+
     public Map<String, Map<String, String>> getLocalization() {
         return this.localization;
     }
@@ -33,6 +39,10 @@ public class SettingSingleton {
     }
 
     /* Setters */
+
+    public void setStarted(LocalDateTime started) {
+        this.started = started;
+    }
 
     public void setLocalization(Map<String, Map<String, String>> localization) {
         this.localization = localization;
