@@ -5,8 +5,8 @@ import java.util.Map;
 public class LocalizationManager implements ILocalizationManager {
     private Map<String, Map<String, String>> localization;
 
-    public void setLocalization(Map<String, Map<String, String>> localization) {
-        this.localization = localization;
+    public LocalizationManager() {
+        this.localization = SettingSingleton.GetInstance().getLocalization();
     }
 
     public String getText(String locale, String name) {

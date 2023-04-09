@@ -24,7 +24,6 @@ public class SlashCommandListener extends ListenerAdapter {
 
     public SlashCommandListener() {
         this.lm = new LocalizationManager();
-        this.lm.setLocalization(SettingSingleton.GetInstance().getLocalization());
     }
 
     @Override
