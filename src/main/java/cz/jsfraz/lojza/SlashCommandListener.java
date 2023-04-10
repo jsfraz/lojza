@@ -58,7 +58,7 @@ public class SlashCommandListener extends ListenerAdapter {
                 testLocalization(event, locale);
                 break;
 
-            case "test database":       // test database
+            case "test database": // test database
                 testDatabase(event, locale);
                 break;
 
@@ -138,7 +138,7 @@ public class SlashCommandListener extends ListenerAdapter {
         event.reply(lm.getText(locale, "textDeleteMessagesAll"))
                 .addActionRow(Button.primary(userId + ":deleteAll", lm.getText(locale, "textYes")),
                         Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
-                .queue();
+                .setEphemeral(true).queue();
     }
 
     // delete specific number of messages
@@ -154,7 +154,7 @@ public class SlashCommandListener extends ListenerAdapter {
                         Button.primary(userId + ":deleteCount:" + countOption.getAsInt(),
                                 lm.getText(locale, "textYes")),
                         Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
-                .queue();
+                .setEphemeral(true).queue();
     }
 
     // button interaction
