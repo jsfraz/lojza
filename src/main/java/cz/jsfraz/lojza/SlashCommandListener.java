@@ -21,9 +21,11 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class SlashCommandListener extends ListenerAdapter {
     private ILocalizationManager lm;
+    private IDatabase db;
 
     public SlashCommandListener() {
         this.lm = new LocalizationManager();
+        this.db = new Database();
     }
 
     @Override
@@ -54,6 +56,10 @@ public class SlashCommandListener extends ListenerAdapter {
             /* Developer commands */
             case "test localization": // test localization command
                 testLocalization(event, locale);
+                break;
+
+            case "test database":       // test database
+                testDatabase(event, locale);
                 break;
 
             case "info": // gets system info
@@ -216,6 +222,17 @@ public class SlashCommandListener extends ListenerAdapter {
         // reply
         event.reply("`" + localeOption.getAsString() + "`, `" + nameOption.getAsString() + "`: "
                 + lm.getText(localeOption.getAsString(), nameOption.getAsString())).queue();
+    }
+
+    // test database connection
+    private void testDatabase(SlashCommandInteractionEvent event, String locale) {
+        try {
+            db.testConnection();
+            event.reply(lm.getText(locale, "textDbOk")).queue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            event.reply(lm.getText(locale, "textDbError") + " *" + e.getMessage() + "*").queue();
+        }
     }
 
     // info command

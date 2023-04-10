@@ -13,6 +13,8 @@
     "textOsTitle": "Operační systém",
     "textJavaVerTitle": "Verze Javy",
     "textUptimeTitle": "Spuštěno",
+    "textDbOk": "Cajk.",
+    "textDbError": "Je to rozbitý:",
     "categoryHelp": "Nápověda",
     "categoryAdmin": "Admin",
     "categoryFun": "Vtípečky pro týpečky",

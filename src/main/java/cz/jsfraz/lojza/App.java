@@ -33,8 +33,22 @@ public class App {
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
-                // discord token
+                // environment variables
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
+                if (System.getenv("MONGO_USER") != null) {
+                        settings.setMongoUser(System.getenv("DISCORD_TOKEN"));
+                }
+                settings.setMongoPassword(System.getenv("MONGO_PASSWORD"));
+                settings.setMongoServer(System.getenv("MONGO_SERVER"));
+                if (System.getenv("MONGO_PORT") != null) {
+                        settings.setMongoPort(Integer.parseInt(System.getenv("MONGO_PORT")));
+                }
+                if (System.getenv("MONGO_DATABASE") != null) {
+                        settings.setMongoDatabase(System.getenv("MONGO_DATABASE"));
+                }
+                if (System.getenv("MONGO_TIMEOUT") != null) {
+                        settings.setMongoTimeoutMS(Integer.parseInt(System.getenv("MONGO_TIMEOUT")));
+                }
 
                 // localization function for command descriptions
                 final LocalizationFunction localizationFunction = ResourceBundleLocalizationFunction
@@ -133,7 +147,9 @@ public class App {
                                                                                                                                                                                                 .getKey())
                                                                                                                                                                                 .keySet()))
                                                                                                                                 // required
-                                                                                                                                .setRequired(true)))
+                                                                                                                                .setRequired(true)),
+                                                                                new SubcommandData("database",
+                                                                                                "Tests database connection."))
                                                                 // guild-only command
                                                                 .setGuildOnly(true)
                                                                 // admin-only command

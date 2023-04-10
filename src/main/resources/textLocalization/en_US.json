@@ -13,6 +13,8 @@
     "textOsTitle": "Operating system",
     "textJavaVerTitle": "Java version",
     "textUptimeTitle": "Uptime",
+    "textDbOk": "Aight.",
+    "textDbError": "It's broken:",
     "categoryHelp": "Help",
     "categoryAdmin": "Admin",
     "categoryFun": "Fun",
