@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+  lojza-mongo:
+    ports:
+      - "27017:27017"
+    network_mode: bridge
+    container_name: mongo-lojza
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=lojza
+      - MONGO_INITDB_ROOT_PASSWORD=12345678
+    volumes:
+      - "mongo-volume:/data/db"
+    image: mongo:latest
+  lojza:
+    network_mode: bridge
+    container_name: lojza
+    restart: always
+    environment:
+      - DISCORD_TOKEN=your_epic_token
+      - MONGO_PASSWORD=12345678
+      - MONGO_SERVER=172.17.0.1   #host's docker0 interface address
+    image: lojza:1.0.0
+volumes:
+  mongo-volume:
+    external: false
