@@ -32,7 +32,7 @@ public class SlashCommandListener extends ListenerAdapter {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         // TODO get server locale
         // server locale
-        final String locale = "en_US";
+        final String locale = "en";
 
         switch (event.getFullCommandName()) {
             /* Help commands */
