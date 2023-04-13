@@ -3,13 +3,18 @@ package cz.jsfraz.lojza;
 import java.awt.Color;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command.Type;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -17,7 +22,10 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class SlashCommandListener extends ListenerAdapter {
     private ILocalizationManager lm;
@@ -30,9 +38,11 @@ public class SlashCommandListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        // TODO get server locale
         // server locale
-        final String locale = "en";
+        Locale locale = Locale.en;
+        if (event.isFromGuild()) {
+            locale = db.getGuildLocale(event.getGuild().getIdLong());
+        }
 
         switch (event.getFullCommandName()) {
             /* Help commands */
@@ -48,6 +58,10 @@ public class SlashCommandListener extends ListenerAdapter {
                 deleteCountCommand(event, locale);
                 break;
 
+            case "setup": // setup command
+                setupCommand(event, locale);
+                break;
+
             /* Fun commands */
             case "greet": // greet user
                 greetCommand(event, locale);
@@ -55,7 +69,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
             /* Developer commands */
             case "test localization": // test localization command
-                testLocalization(event, locale);
+                testLocalization(event);
                 break;
 
             case "test database": // test database
@@ -72,8 +86,10 @@ public class SlashCommandListener extends ListenerAdapter {
         }
     }
 
+    /* Help commands */
+
     // help
-    private void helpCommand(SlashCommandInteractionEvent event, String locale) {
+    private void helpCommand(SlashCommandInteractionEvent event, Locale locale) {
         // command categories
         CommandSet[] commandSets = SettingSingleton.GetInstance().getCommandSets();
 
@@ -81,7 +97,6 @@ public class SlashCommandListener extends ListenerAdapter {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(lm.getText(locale, "textHelpTitle"));
         eb.setColor(Color.yellow);
-
         eb.addField(lm.getText(locale, "textHelpDescTitle"),
                 lm.getText(locale, "textHelpDesc"),
                 false);
@@ -131,8 +146,18 @@ public class SlashCommandListener extends ListenerAdapter {
         event.replyEmbeds(eb.build()).queue();
     }
 
+    /* Admin commands */
+
     // delete all messages
-    private void deleteAllCommand(SlashCommandInteractionEvent event, String locale) {
+    private void deleteAllCommand(SlashCommandInteractionEvent event, Locale locale) {
+        OptionMapping forceOption = event.getOption("force");
+        if (forceOption != null) {
+            if (Boolean.parseBoolean(forceOption.getAsString())) {
+                deleteAllMessages((TextChannel) event.getChannel());
+                return;
+            }
+        }
+
         String userId = event.getUser().getId();
         // reply with button menu
         event.reply(lm.getText(locale, "textDeleteMessagesAll"))
@@ -143,18 +168,89 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // delete specific number of messages
     // https://github.com/DV8FromTheWorld/JDA/blob/master/src/examples/java/SlashBotExample.java#L195
-    private void deleteCountCommand(SlashCommandInteractionEvent event, String locale) {
+    private void deleteCountCommand(SlashCommandInteractionEvent event, Locale locale) {
         // count option
         OptionMapping countOption = event.getOption("count");
 
         // reply with button menu
         String userId = event.getUser().getId();
         event.reply(String.format(lm.getText(locale, "textDeleteMessagesCount"), countOption.getAsInt()))
-                .addActionRow(
-                        Button.primary(userId + ":deleteCount:" + countOption.getAsInt(),
-                                lm.getText(locale, "textYes")),
+                .addActionRow(Button.primary(userId + ":deleteCount:" + countOption.getAsInt(),
+                        lm.getText(locale, "textYes")),
                         Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
                 .setEphemeral(true).queue();
+    }
+
+    // setup command
+    private void setupCommand(SlashCommandInteractionEvent event, Locale locale) {
+        String userId = event.getUser().getId();
+        event.replyEmbeds(getSetupEmbed(locale)).addActionRow(getSetupSelectMenu(locale, userId, null))
+                .setEphemeral(true).queue();
+    }
+
+    // guild setup
+    private void setup(StringSelectInteractionEvent event, Locale locale) {
+        String userId = event.getUser().getId();
+        SetupOption option = SetupOption.valueOf(event.getValues().get(0));
+
+        List<ItemComponent> components = new ArrayList<ItemComponent>();
+        if (option == SetupOption.locale) {
+            StringSelectMenu.Builder localeMenuBuilder = StringSelectMenu.create(userId + ":localeMenu");
+            SettingSingleton settings = SettingSingleton.GetInstance();
+            Map<String, String> languagues = settings.getLanguagueNames();
+            settings.getLocalization().keySet().forEach(x -> {
+                localeMenuBuilder.addOption(languagues.get(x), x);
+            });
+            localeMenuBuilder.setDefaultValues(locale.name());
+            components.add(localeMenuBuilder.build());
+        } else {
+            Button[] buttons = getSetupEnableDisableButtons(locale, userId, option);
+            for (Button button : buttons) {
+                components.add(button);
+            }
+        }
+
+        event.getHook()
+                .editMessageComponentsById("@original",
+                        ActionRow.of(getSetupSelectMenu(locale, userId, option)),
+                        ActionRow.of(components))
+                .queue();
+    }
+
+    // setup embed
+    private MessageEmbed getSetupEmbed(Locale locale) {
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setColor(Color.decode("#2b2d31"));
+        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"), false);
+        return eb.build();
+    }
+
+    // setup select menu
+    private StringSelectMenu getSetupSelectMenu(Locale locale, String userId, SetupOption option) {
+        // https://stackoverflow.com/questions/74833816/how-to-send-dropdown-menu-in-java-discord-api
+        StringSelectMenu.Builder selectMenuBuilder = StringSelectMenu.create(userId + ":setupMenu");
+        for (SetupOption o : EnumSet.allOf(SetupOption.class)) {
+            selectMenuBuilder.addOption(
+                    lm.getText(locale, "option" + o.name().substring(0, 1).toUpperCase() + o.name().substring(1)),
+                    o.name());
+            // setting default option
+            if (o == option) {
+                selectMenuBuilder.setDefaultValues(o.name());
+            }
+        }
+        return selectMenuBuilder.build();
+    }
+
+    // setup enable/disable buttons
+    private Button[] getSetupEnableDisableButtons(Locale locale, String userId, SetupOption option) {
+        String o = "";
+        if (option != null) {
+            o = ":" + option.name();
+        }
+        Button[] components = new Button[] { Button.success(userId + ":enable",
+                lm.getText(locale, "textEnable")),
+                Button.danger(userId + ":disable" + o, lm.getText(locale, "textDisable")) };
+        return components;
     }
 
     // button interaction
@@ -162,42 +258,31 @@ public class SlashCommandListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String[] ids = event.getComponentId().split(":");
-        String authorId = ids[0];
-        String type = ids[1];
 
         // check if the right user clicked, otherwise just ignore
-        if (!authorId.equals(event.getUser().getId()))
+        if (!ids[0].equals(event.getUser().getId()))
             return;
+
         // acknowledge the button was clicked, otherwise the interaction will fail
         event.deferEdit().queue();
 
         TextChannel channel = (TextChannel) event.getChannel();
-        switch (type) {
+        switch (ids[1]) {
             // delete all messages
             case "deleteAll":
                 // delete the prompt message
                 event.getHook().deleteOriginal().queue();
-                try {
-                    TimeUnit.MILLISECONDS.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                // clones channel and deletes the original
-                int postion = channel.getPosition() - 1;
-                channel.createCopy().setPosition(postion).queue();
-                channel.delete().queue();
+
+                deleteAllMessages(channel);
                 break;
 
             // delete specific count of images
             case "deleteCount":
                 // delete the prompt message
                 event.getHook().deleteOriginal().queue();
-                // delete messages
+
                 String count = ids[2]; // number of messages to delete
-                channel.getIterableHistory()
-                        .skipTo(event.getMessageIdLong())
-                        .takeAsync(Integer.parseInt(count))
-                        .thenAccept(channel::purgeMessages);
+                deleteMessageCount(event.getMessageIdLong(), channel, Integer.parseInt(count));
                 break;
 
             // delete the prompt message
@@ -207,13 +292,73 @@ public class SlashCommandListener extends ListenerAdapter {
         }
     }
 
+    // string select interaction
+    @Override
+    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
+        // server locale
+        // server locale
+        Locale locale = Locale.en;
+        if (event.isFromGuild()) {
+            locale = db.getGuildLocale(event.getGuild().getIdLong());
+        }
+
+        String[] ids = event.getComponentId().split(":");
+
+        // check if the right user clicked, otherwise just ignore
+        if (!ids[0].equals(event.getUser().getId()))
+            return;
+
+        // acknowledge the button was clicked, otherwise the interaction will fail
+        event.deferEdit().queue();
+
+        // check if the right user clicked, otherwise just ignore
+        if (!ids[0].equals(event.getUser().getId()))
+            return;
+
+        switch (ids[1]) {
+            case "setupMenu": // guild setup
+                setup(event, locale);
+                break;
+
+            case "localeMenu": // guild languague
+                db.updateGuildLocale(event.getGuild().getIdLong(), Locale.valueOf(event.getValues().get(0)));
+                break;
+        }
+    }
+
+    // delete all messages in channel
+    private void deleteAllMessages(TextChannel channel) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // clones channel and deletes the original
+        int postion = channel.getPosition() - 1;
+        channel.createCopy().setPosition(postion).queue();
+        channel.delete().queue();
+    }
+
+    // delete specific number of messages in cahnnel
+    private void deleteMessageCount(long messageId, TextChannel channel, int count) {
+        // delete messages
+        channel.getIterableHistory()
+                .skipTo(messageId)
+                .takeAsync(count)
+                .thenAccept(channel::purgeMessages);
+    }
+
+    /* Fun commands */
+
     // greet command
-    private void greetCommand(SlashCommandInteractionEvent event, String locale) {
+    private void greetCommand(SlashCommandInteractionEvent event, Locale locale) {
         event.reply(lm.getText(locale, "textGreet")).queue();
     }
 
+    /* Developer commands */
+
     // test localization command
-    private void testLocalization(SlashCommandInteractionEvent event, String locale) {
+    private void testLocalization(SlashCommandInteractionEvent event) {
         // locale option
         OptionMapping localeOption = event.getOption("locale");
         // name option
@@ -221,22 +366,23 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // reply
         event.reply("`" + localeOption.getAsString() + "`, `" + nameOption.getAsString() + "`: "
-                + lm.getText(localeOption.getAsString(), nameOption.getAsString())).queue();
+                + lm.getText(Locale.valueOf(localeOption.getAsString()), nameOption.getAsString())).setEphemeral(true)
+                .queue();
     }
 
     // test database connection
-    private void testDatabase(SlashCommandInteractionEvent event, String locale) {
+    private void testDatabase(SlashCommandInteractionEvent event, Locale locale) {
         try {
             db.testConnection();
             event.reply(lm.getText(locale, "textDbOk")).queue();
         } catch (Exception e) {
             e.printStackTrace();
-            event.reply(lm.getText(locale, "textDbError") + " *" + e.getMessage() + "*").queue();
+            event.reply(lm.getText(locale, "textDbError") + " *" + e.getMessage() + "*").setEphemeral(true).queue();
         }
     }
 
     // info command
-    private void infoCommand(SlashCommandInteractionEvent event, String locale) {
+    private void infoCommand(SlashCommandInteractionEvent event, Locale locale) {
         // os info
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
@@ -260,6 +406,6 @@ public class SlashCommandListener extends ListenerAdapter {
         eb.addField(lm.getText(locale, "textUptimeTitle"), String.format("%02d:%02d:%02d", HH, MM, SS), false);
 
         // reply with embed
-        event.replyEmbeds(eb.build()).queue();
+        event.replyEmbeds(eb.build()).setEphemeral(true).queue();
     }
 }

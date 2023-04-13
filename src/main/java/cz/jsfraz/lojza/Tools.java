@@ -24,33 +24,43 @@ public class Tools {
     // gets localization from resource folder
     public static Map<String, Map<String, String>> getLocalization() throws IOException {
         Map<String, Map<String, String>> localization = new HashMap<String, Map<String, String>>();
-
         for (Locale locale : EnumSet.allOf(Locale.class)) {
-            // reading json from resource folder
-            InputStream inputStream = Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream("textLocalization/" + locale.name() + ".json");
-            StringBuilder textBuilder = new StringBuilder();
-            try (Reader reader = new BufferedReader(
-                    new InputStreamReader(inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-                int c = 0;
-                while ((c = reader.read()) != -1) {
-                    textBuilder.append((char) c);
-                }
-            }
-            String json = textBuilder.toString();
-
-            // deserializing with jackson
-            // https://stackoverflow.com/questions/18002132/deserializing-into-a-hashmap-of-custom-objects-with-jackson
-            ObjectMapper mapper = new ObjectMapper();
-            TypeFactory typeFactory = mapper.getTypeFactory();
-            MapType mapType = typeFactory.constructMapType(HashMap.class, String.class, String.class);
-            HashMap<String, String> map = mapper.readValue(json, mapType);
-
+            // reading json file
+            String json = readJsonFile("textLocalization/" + locale.name() + ".json");
             // adding to localization map
-            localization.put(locale.name(), map);
+            localization.put(locale.name(), deserializeMap(json));
         }
-
         return localization;
+    }
+    
+    public static Map<String, String> getLanguagueNames() throws IOException {
+        String json = readJsonFile("ISO-693-1.json");
+        return deserializeMap(json);
+    }
+
+    // https://stackoverflow.com/questions/15749192/how-do-i-load-a-file-from-resource-folder
+    // https://www.baeldung.com/convert-input-stream-to-string
+    private static String readJsonFile(String path) throws IOException {
+        InputStream inputStream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(path);
+        StringBuilder textBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(
+                new InputStreamReader(inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                textBuilder.append((char) c);
+            }
+        }
+        return textBuilder.toString();
+    }
+
+    // deserializing with jackson
+    // https://stackoverflow.com/questions/18002132/deserializing-into-a-hashmap-of-custom-objects-with-jackson
+    private static HashMap<String, String> deserializeMap(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        TypeFactory typeFactory = mapper.getTypeFactory();
+        MapType mapType = typeFactory.constructMapType(HashMap.class, String.class, String.class);
+        return mapper.readValue(json, mapType);
     }
 
     // returns list of choices based on key set

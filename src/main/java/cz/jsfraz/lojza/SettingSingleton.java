@@ -7,6 +7,7 @@ public class SettingSingleton {
     private static SettingSingleton instance;
     private LocalDateTime started;
     private Map<String, Map<String, String>> localization;
+    private Map<String, String> languagueNames;
     private CommandSet[] commandSets;
     private String discordToken; // required
     private String mongoUser = "lojza";
@@ -34,6 +35,10 @@ public class SettingSingleton {
 
     public Map<String, Map<String, String>> getLocalization() {
         return this.localization;
+    }
+
+    public Map<String, String> getLanguagueNames() {
+        return this.languagueNames;
     }
 
     public CommandSet[] getCommandSets() {
@@ -76,6 +81,10 @@ public class SettingSingleton {
 
     public void setLocalization(Map<String, Map<String, String>> localization) {
         this.localization = localization;
+    }
+
+    public void setLanguagueNames(Map<String, String> languages) {
+        this.languagueNames = languages;
     }
 
     public void setCommandSets(CommandSet[] commandCategories) {

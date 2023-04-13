@@ -13,10 +13,15 @@
     "textOsTitle": "Operační systém",
     "textJavaVerTitle": "Verze Javy",
     "textUptimeTitle": "Spuštěno",
+    "textSetupTitle": "Nastavení",
+    "textSetupDesc": "Zde můžete změnit nastavení a chování Lojzy na vašem serveru.",
     "textDbOk": "Cajk.",
     "textDbError": "Je to rozbitý:",
+    "textEnable": "Povolit",
+    "textDisable": "Zakázat",
     "categoryHelp": "Nápověda",
     "categoryAdmin": "Admin",
     "categoryFun": "Vtípečky pro týpečky",
-    "categoryDev": "Vývoj"
+    "categoryDev": "Vývoj",
+    "optionLocale": "Jazyk"
 }

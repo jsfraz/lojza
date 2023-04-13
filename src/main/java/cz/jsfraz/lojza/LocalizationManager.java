@@ -9,15 +9,20 @@ public class LocalizationManager implements ILocalizationManager {
         this.localization = SettingSingleton.GetInstance().getLocalization();
     }
 
-    public String getText(String locale, String name) {
-        String text = "ERROR";
-        Map<String, String> strings = this.localization.getOrDefault(locale, null);
+    // gets loclized text or returns original name
+    public String getText(Locale locale, String name) {
+        Map<String, String> strings = this.localization.getOrDefault(locale.name(), null);
+        // check if locale exists
         if (strings != null) {
             String result = strings.getOrDefault(name, null);
+            // check if name exists
             if (result != null) {
-                text = result;
+                return result;
+            } else {
+                return name;
             }
+        } else {
+            return name;
         }
-        return text;
     }
 }

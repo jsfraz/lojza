@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.localization.LocalizationFunction;
 import net.dv8tion.jda.api.interactions.commands.localization.ResourceBundleLocalizationFunction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
 // https://github.com/DV8FromTheWorld/JDA/tree/master/src/examples/java
 
@@ -30,6 +31,7 @@ public class App {
                 // text localization
                 try {
                         settings.setLocalization(Tools.getLocalization());
+                        settings.setLanguagueNames(Tools.getLanguagueNames());
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
@@ -73,7 +75,24 @@ public class App {
                                                                 .addSubcommands(
                                                                                 // delete all messages
                                                                                 new SubcommandData("all",
-                                                                                                "Deletes all messages from the text channel."),
+                                                                                                "Deletes all messages from the text channel.")
+                                                                                                .addOptions(
+                                                                                                                // whether
+                                                                                                                // or
+                                                                                                                // not
+                                                                                                                // to
+                                                                                                                // display
+                                                                                                                // prompt
+                                                                                                                new OptionData(
+                                                                                                                                OptionType.STRING,
+                                                                                                                                "force",
+                                                                                                                                "Deletes messages without showing warning.")
+                                                                                                                                .addChoices(new Command.Choice(
+                                                                                                                                                "true",
+                                                                                                                                                "true"),
+                                                                                                                                                new Command.Choice(
+                                                                                                                                                                "false",
+                                                                                                                                                                "false"))),
                                                                                 // deletes specific number of messages
                                                                                 new SubcommandData("count",
                                                                                                 "Deletes specific number of messages from the text channel.")
@@ -96,7 +115,15 @@ public class App {
                                                                 .setGuildOnly(true)
                                                                 // admin-only command
                                                                 .setDefaultPermissions(DefaultMemberPermissions
-                                                                                .enabledFor(Permission.ADMINISTRATOR))
+                                                                                .enabledFor(Permission.ADMINISTRATOR)),
+                                                // setup command
+                                                Commands.slash("setup", "Setup Lojza for your server.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR)),
                                 }),
                                 // fun commands (it's difficult, because fun is subjective thing...)
                                 new CommandSet(CommandCategory.categoryFun, ":zany_face:", new CommandData[] {
@@ -159,6 +186,11 @@ public class App {
                                                 Commands.slash("info",
                                                                 "Gets system info.")
                                                                 .setLocalizationFunction(localizationFunction)
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR))
                                 })
                 });
 

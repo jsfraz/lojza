@@ -13,10 +13,15 @@
     "textOsTitle": "Operating system",
     "textJavaVerTitle": "Java version",
     "textUptimeTitle": "Uptime",
+    "textSetupTitle": "Setup",
+    "textSetupDesc": "Here you can change the settings and behavior of Lojza on your server.",
     "textDbOk": "Aight.",
     "textDbError": "It's broken:",
+    "textEnable": "Enable",
+    "textDisable": "Disable",
     "categoryHelp": "Help",
     "categoryAdmin": "Admin",
     "categoryFun": "Fun",
-    "categoryDev": "Developement"
+    "categoryDev": "Developement",
+    "optionLocale": "Language"
 }
