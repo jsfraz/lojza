@@ -296,7 +296,6 @@ public class SlashCommandListener extends ListenerAdapter {
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         // server locale
-        // server locale
         Locale locale = Locale.en;
         if (event.isFromGuild()) {
             locale = db.getGuildLocale(event.getGuild().getIdLong());
@@ -310,10 +309,6 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // acknowledge the button was clicked, otherwise the interaction will fail
         event.deferEdit().queue();
-
-        // check if the right user clicked, otherwise just ignore
-        if (!ids[0].equals(event.getUser().getId()))
-            return;
 
         switch (ids[1]) {
             case "setupMenu": // guild setup

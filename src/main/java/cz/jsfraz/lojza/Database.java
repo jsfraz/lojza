@@ -1,5 +1,6 @@
 package cz.jsfraz.lojza;
 
+import java.beans.Introspector;
 import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
@@ -56,7 +57,7 @@ public class Database implements IDatabase {
 
     // gets DiscordGuild collection
     private MongoCollection<DiscordGuild> getDiscordGuildCollection() {
-        return database.getCollection(DiscordGuild.class.getSimpleName() + collectionSuffix, DiscordGuild.class);
+        return database.getCollection(Introspector.decapitalize(DiscordGuild.class.getSimpleName()) + collectionSuffix, DiscordGuild.class);
     }
 
     // returns DiscordGuild or null
@@ -76,7 +77,7 @@ public class Database implements IDatabase {
             collection.updateOne(Filters.eq("guildId", guildId), Updates.set("locale", locale));
         } else {
             // insert if doesn't exist
-            guild = new DiscordGuild(guildId, Locale.en);
+            guild = new DiscordGuild(guildId, locale);
             collection.insertOne(guild);
         }
     }
