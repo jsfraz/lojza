@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.mongodb.MongoException;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -26,6 +28,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class SlashCommandListener extends ListenerAdapter {
     private ILocalizationManager lm;
@@ -316,7 +319,15 @@ public class SlashCommandListener extends ListenerAdapter {
                 break;
 
             case "localeMenu": // guild languague
-                db.updateGuildLocale(event.getGuild().getIdLong(), Locale.valueOf(event.getValues().get(0)));
+                try {
+                    db.updateGuildLocale(event.getGuild().getIdLong(), Locale.valueOf(event.getValues().get(0)));
+                } catch (MongoException e) {
+                    event.getUser().openPrivateChannel()
+                            .flatMap(x -> x
+                                    .sendMessage(
+                                            MessageCreateData.fromContent(lm.getText(Locale.en, "textDbErrorUser"))))
+                            .queue();
+                }
                 break;
         }
     }
@@ -367,12 +378,10 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // test database connection
     private void testDatabase(SlashCommandInteractionEvent event, Locale locale) {
-        try {
-            db.testConnection();
+        if (db.testConnection()) {
             event.reply(lm.getText(locale, "textDbOk")).queue();
-        } catch (Exception e) {
-            e.printStackTrace();
-            event.reply(lm.getText(locale, "textDbError") + " *" + e.getMessage() + "*").setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textDbError")).setEphemeral(true).queue();
         }
     }
 

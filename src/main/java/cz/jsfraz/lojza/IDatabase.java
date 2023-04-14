@@ -1,9 +1,11 @@
 package cz.jsfraz.lojza;
 
-public interface IDatabase {
-    public void testConnection() throws Exception;
+import com.mongodb.MongoException;
 
-    public void updateGuildLocale(long guildId, Locale locale);
+public interface IDatabase {
+    public boolean testConnection();
+
+    public void updateGuildLocale(long guildId, Locale locale) throws MongoException;
 
     public Locale getGuildLocale(long guildId);
 }

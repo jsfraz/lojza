@@ -11,6 +11,7 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -39,7 +40,7 @@ public class Database implements IDatabase {
                     builder.connectTimeout(1000, TimeUnit.MILLISECONDS);
                     builder.readTimeout(1000, TimeUnit.MILLISECONDS);
                 })
-                .applyToClusterSettings(builder -> builder.serverSelectionTimeout(1000, TimeUnit.MILLISECONDS))
+                .applyToClusterSettings(builder -> builder.serverSelectionTimeout(100, TimeUnit.MILLISECONDS))
                 .applyConnectionString(new ConnectionString(
                         "mongodb://" + settingSingleton.getMongoUser() + ":" + settingSingleton.getMongoPassword() + "@"
                                 + settingSingleton.getMongoServer() + ":" + settingSingleton.getMongoPort()))
@@ -49,15 +50,22 @@ public class Database implements IDatabase {
     }
 
     // test database connection
-    public void testConnection() throws Exception {
-        Document document = new Document();
-        document.put("ping", 1);
-        database.runCommand(document);
+    public boolean testConnection() {
+        try {
+            Document document = new Document();
+            document.put("ping", 1);
+            database.runCommand(document);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     // gets DiscordGuild collection
     private MongoCollection<DiscordGuild> getDiscordGuildCollection() {
-        return database.getCollection(Introspector.decapitalize(DiscordGuild.class.getSimpleName()) + collectionSuffix, DiscordGuild.class);
+        return database.getCollection(Introspector.decapitalize(DiscordGuild.class.getSimpleName()) + collectionSuffix,
+                DiscordGuild.class);
     }
 
     // returns DiscordGuild or null
@@ -67,7 +75,7 @@ public class Database implements IDatabase {
     }
 
     // updates DiscordGuild locale
-    public void updateGuildLocale(long guildId, Locale locale) {
+    public void updateGuildLocale(long guildId, Locale locale) throws MongoException {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -84,18 +92,22 @@ public class Database implements IDatabase {
 
     // get DiscordGuild locale
     public Locale getGuildLocale(long guildId) {
-        // gets guild locale by id
-        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
-        Bson filter = Filters.eq("guildId", guildId);
-        Bson projection = Projections.fields(Projections.include("locale"));
-        DiscordGuild guild = collection.find(filter).projection(projection).first();
+        try {
+            // gets guild locale by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("locale"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
 
-        if (guild == null) {
-            // if doesn't exist in database, return default
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return Locale.en;
+            } else {
+                // if exists return locale
+                return guild.locale;
+            }
+        } catch (Exception e) {
             return Locale.en;
-        } else {
-            // if exists return locale
-            return guild.locale;
         }
     }
 }

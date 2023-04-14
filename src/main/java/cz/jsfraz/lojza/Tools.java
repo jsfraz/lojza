@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +33,7 @@ public class Tools {
         }
         return localization;
     }
-    
+
     public static Map<String, String> getLanguagueNames() throws IOException {
         String json = readJsonFile("ISO-693-1.json");
         return deserializeMap(json);
@@ -64,8 +65,16 @@ public class Tools {
     }
 
     // returns list of choices based on key set
+    // Cannot have more than 25 choices for one option!
     public static List<Choice> getChoicesFromKeys(Set<String> keySet) {
         List<Choice> choices = new ArrayList<Choice>();
+
+        // keeps removing items from set until 25 are left
+        Random rand = new Random();
+        while (keySet.size() > 25) {
+            keySet.remove(keySet.toArray()[rand.nextInt(0, keySet.size() - 1)]);
+        }
+
         for (String key : keySet) {
             choices.add(new Choice(key, key));
         }
