@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -16,7 +17,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.localization.LocalizationFunction;
 import net.dv8tion.jda.api.interactions.commands.localization.ResourceBundleLocalizationFunction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
-import net.dv8tion.jda.api.interactions.commands.Command;
 
 // https://github.com/DV8FromTheWorld/JDA/tree/master/src/examples/java
 
@@ -38,7 +38,7 @@ public class App {
                 // environment variables
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
                 if (System.getenv("MONGO_USER") != null) {
-                        settings.setMongoUser(System.getenv("DISCORD_TOKEN"));
+                        settings.setMongoUser(System.getenv("MONGO_USER"));
                 }
                 settings.setMongoPassword(System.getenv("MONGO_PASSWORD"));
                 settings.setMongoServer(System.getenv("MONGO_SERVER"));
@@ -50,6 +50,9 @@ public class App {
                 }
                 if (System.getenv("MONGO_TIMEOUT") != null) {
                         settings.setMongoTimeoutMS(Integer.parseInt(System.getenv("MONGO_TIMEOUT")));
+                }
+                if (System.getenv("RSS_REFRESH") != null) {
+                        settings.setRssRefreshMinutes(Integer.parseInt(System.getenv("RSS_REFRESH")));
                 }
 
                 // localization function for command descriptions
@@ -124,6 +127,40 @@ public class App {
                                                                 // admin-only command
                                                                 .setDefaultPermissions(DefaultMemberPermissions
                                                                                 .enabledFor(Permission.ADMINISTRATOR)),
+                                                // rss commands
+                                                Commands.slash("rss", "Manage RSS channels.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                .addSubcommands(
+                                                                                // sets channel to send annoucements
+                                                                                new SubcommandData("channel",
+                                                                                                "Sets current text channel as channel to send RSS annoucements to."),
+                                                                                // add RSS channel
+                                                                                new SubcommandData("add",
+                                                                                                "Adds new RSS channel.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.STRING,
+                                                                                                                "url",
+                                                                                                                "URL of RSS channel.")
+                                                                                                                .setRequired(true)),
+                                                                                // get rss channel and list of urls
+                                                                                new SubcommandData("list",
+                                                                                                "Shows text channel for sending annoucements and list of RSS channels."),
+                                                                                // remove rss channel by index
+                                                                                new SubcommandData("remove",
+                                                                                                "Removes RSS channel.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.INTEGER,
+                                                                                                                "index",
+                                                                                                                "Index of RSS channel.")
+                                                                                                                .setRequired(true))
+
+                                                                )
+
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR))
                                 }),
                                 // fun commands (it's difficult, because fun is subjective thing...)
                                 new CommandSet(CommandCategory.categoryFun, ":zany_face:", new CommandData[] {
@@ -175,8 +212,22 @@ public class App {
                                                                                                                                                                                 .keySet()))
                                                                                                                                 // required
                                                                                                                                 .setRequired(true)),
+                                                                                // test database
                                                                                 new SubcommandData("database",
-                                                                                                "Tests database connection."))
+                                                                                                "Tests database connection."),
+                                                                                // test rss
+                                                                                new SubcommandData("rss",
+                                                                                                "Tests RSS feed.")
+                                                                                                .addOptions(
+                                                                                                                // url
+                                                                                                                // of
+                                                                                                                // rss
+                                                                                                                // channel
+                                                                                                                new OptionData(
+                                                                                                                                OptionType.STRING,
+                                                                                                                                "url",
+                                                                                                                                "URL of RSS channel.")
+                                                                                                                                .setRequired(true)))
                                                                 // guild-only command
                                                                 .setGuildOnly(true)
                                                                 // admin-only command

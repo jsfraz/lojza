@@ -37,10 +37,11 @@ public class Database implements IDatabase {
         // https://stackoverflow.com/questions/65189429/mongodb-java-driver-4-1-1-how-to-configure-timeout-settings
         MongoClientSettings mongoSettings = MongoClientSettings.builder()
                 .applyToSocketSettings(builder -> {
-                    builder.connectTimeout(1000, TimeUnit.MILLISECONDS);
-                    builder.readTimeout(1000, TimeUnit.MILLISECONDS);
+                    builder.connectTimeout(settingSingleton.getMongoTimeoutMS(), TimeUnit.MILLISECONDS);
+                    builder.readTimeout(settingSingleton.getMongoTimeoutMS(), TimeUnit.MILLISECONDS);
                 })
-                .applyToClusterSettings(builder -> builder.serverSelectionTimeout(100, TimeUnit.MILLISECONDS))
+                .applyToClusterSettings(builder -> builder.serverSelectionTimeout(settingSingleton.getMongoTimeoutMS(),
+                        TimeUnit.MILLISECONDS))
                 .applyConnectionString(new ConnectionString(
                         "mongodb://" + settingSingleton.getMongoUser() + ":" + settingSingleton.getMongoPassword() + "@"
                                 + settingSingleton.getMongoServer() + ":" + settingSingleton.getMongoPort()))

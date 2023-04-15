@@ -20,9 +20,11 @@
     "textEnable": "Enable",
     "textDisable": "Disable",
     "textDbErrorUser": "Somehow I couldn't set it up, must be something with the database.",
+    "textSetupRss": "RSS feeds can be managed with the following commands:",
     "categoryHelp": "Help",
     "categoryAdmin": "Admin",
     "categoryFun": "Fun",
     "categoryDev": "Developement",
-    "optionLocale": "Language"
+    "optionLocale": "Language",
+    "optionRss": "RSS channels"
 }

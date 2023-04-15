@@ -15,7 +15,8 @@ public class SettingSingleton {
     private String mongoServer; // required
     private int mongoPort = 27017;
     private String mongoDatabase = "lojza";
-    private int mongoTimeoutMS = 1000;
+    private int mongoTimeoutMS = 100;
+    private int rssRefreshMinutes = 3600;
 
     private SettingSingleton() {
     }
@@ -73,6 +74,10 @@ public class SettingSingleton {
         return this.mongoTimeoutMS;
     }
 
+    public int getRssRefreshMinutes() {
+        return this.rssRefreshMinutes;
+    }
+
     /* Setters */
 
     public void setStarted(LocalDateTime started) {
@@ -117,5 +122,9 @@ public class SettingSingleton {
 
     public void setMongoTimeoutMS(int timeout) {
         this.mongoTimeoutMS = timeout;
+    }
+
+    public void setRssRefreshMinutes(int minutes) {
+        this.rssRefreshMinutes = minutes;
     }
 }

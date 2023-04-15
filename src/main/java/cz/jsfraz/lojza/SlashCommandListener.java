@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.mongodb.MongoException;
@@ -26,6 +28,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -79,6 +82,10 @@ public class SlashCommandListener extends ListenerAdapter {
                 testDatabase(event, locale);
                 break;
 
+            case "test rss": // test rss
+                testRss(event, locale);
+                break;
+
             case "info": // gets system info
                 infoCommand(event, locale);
                 break;
@@ -104,42 +111,9 @@ public class SlashCommandListener extends ListenerAdapter {
                 lm.getText(locale, "textHelpDesc"),
                 false);
 
-        // TODO future support for SubcommandGroups
+        // gets commands as string
         for (CommandSet commandSet : commandSets) {
-            String commands = "";
-            for (CommandData commandData : commandSet.commands) {
-                if (commandData.getType() == Type.SLASH) {
-                    SlashCommandData slash = (SlashCommandData) commandData;
-                    List<SubcommandData> subcommands = slash.getSubcommands();
-                    if (subcommands.isEmpty()) {
-                        List<OptionData> options = slash.getOptions();
-                        String command = "`/" + slash.getName();
-                        for (OptionData option : options) {
-                            if (option.isRequired()) {
-                                command += " " + option.getName();
-                            } else {
-                                command += " [" + option.getName() + "]";
-                            }
-                        }
-                        command += "`";
-                        commands += command + "\n";
-                    } else {
-                        for (SubcommandData subcommand : subcommands) {
-                            List<OptionData> options = subcommand.getOptions();
-                            String command = "`/" + slash.getName() + " " + subcommand.getName();
-                            for (OptionData option : options) {
-                                if (option.isRequired()) {
-                                    command += " [" + option.getName() + "]";
-                                } else {
-                                    command += " (" + option.getName() + ")";
-                                }
-                            }
-                            command += "`";
-                            commands += command + "\n";
-                        }
-                    }
-                }
-            }
+            String commands = getCommandHelp(commandSet.commands);
 
             eb.addField("**" + commandSet.getDisplayEmoji() + " " + lm.getText(locale, commandSet.getCategory().name())
                     + "**", commands, true);
@@ -147,6 +121,46 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // reply with embed
         event.replyEmbeds(eb.build()).queue();
+    }
+
+    // I forgot how this works
+    private String getCommandHelp(CommandData[] commands) {
+        // TODO future support for SubcommandGroups
+        String text = "";
+        for (CommandData commandData : commands) {
+            if (commandData.getType() == Type.SLASH) {
+                SlashCommandData slash = (SlashCommandData) commandData;
+                List<SubcommandData> subcommands = slash.getSubcommands();
+                if (subcommands.isEmpty()) {
+                    List<OptionData> options = slash.getOptions();
+                    String command = "`/" + slash.getName();
+                    for (OptionData option : options) {
+                        if (option.isRequired()) {
+                            command += " " + option.getName();
+                        } else {
+                            command += " [" + option.getName() + "]";
+                        }
+                    }
+                    command += "`";
+                    text += command + "\n";
+                } else {
+                    for (SubcommandData subcommand : subcommands) {
+                        List<OptionData> options = subcommand.getOptions();
+                        String command = "`/" + slash.getName() + " " + subcommand.getName();
+                        for (OptionData option : options) {
+                            if (option.isRequired()) {
+                                command += " [" + option.getName() + "]";
+                            } else {
+                                command += " (" + option.getName() + ")";
+                            }
+                        }
+                        command += "`";
+                        text += command + "\n";
+                    }
+                }
+            }
+        }
+        return text;
     }
 
     /* Admin commands */
@@ -197,26 +211,51 @@ public class SlashCommandListener extends ListenerAdapter {
         SetupOption option = SetupOption.valueOf(event.getValues().get(0));
 
         List<ItemComponent> components = new ArrayList<ItemComponent>();
-        if (option == SetupOption.locale) {
-            StringSelectMenu.Builder localeMenuBuilder = StringSelectMenu.create(userId + ":localeMenu");
-            SettingSingleton settings = SettingSingleton.GetInstance();
-            Map<String, String> languagues = settings.getLanguagueNames();
-            settings.getLocalization().keySet().forEach(x -> {
-                localeMenuBuilder.addOption(languagues.get(x), x);
-            });
-            localeMenuBuilder.setDefaultValues(locale.name());
-            components.add(localeMenuBuilder.build());
-        } else {
-            Button[] buttons = getSetupEnableDisableButtons(locale, userId, option);
-            for (Button button : buttons) {
-                components.add(button);
-            }
+
+        switch (option) {
+            case locale: // locale menu
+                StringSelectMenu.Builder localeMenuBuilder = StringSelectMenu.create(userId + ":localeMenu");
+                SettingSingleton settings = SettingSingleton.GetInstance();
+                Map<String, String> languagues = settings.getLanguagueNames();
+                settings.getLocalization().keySet().forEach(x -> {
+                    localeMenuBuilder.addOption(languagues.get(x), x);
+                });
+                localeMenuBuilder.setDefaultValues(locale.name());
+                components.add(localeMenuBuilder.build());
+                break;
+
+            case rss: // rss
+                // get admin commands starting with "rss"
+                Optional<CommandSet> set = Arrays.asList(SettingSingleton.GetInstance().getCommandSets()).stream()
+                        .filter(x -> x.getCategory() == CommandCategory.categoryAdmin).findFirst();
+                List<CommandData> rssCommands = Arrays.asList(set.get().commands).stream()
+                        .filter(x -> x.getName().startsWith("rss")).toList();
+                String commands = getCommandHelp(rssCommands.toArray(new CommandData[0])).replaceAll("\n", " ");
+                event.getUser().openPrivateChannel()
+                        .flatMap(x -> x
+                                .sendMessage(
+                                        MessageCreateData
+                                                .fromContent(lm.getText(locale, "textSetupRss") + " " + commands)))
+                        .queue();
+                break;
+
+            default: // anything else (enable/disable buttons)
+                Button[] buttons = getSetupEnableDisableButtons(locale, userId, option);
+                for (Button button : buttons) {
+                    components.add(button);
+                }
+                break;
+        }
+
+        // componenets to send
+        List<LayoutComponent> layoutComponents = new ArrayList<LayoutComponent>();
+        layoutComponents.add(ActionRow.of(getSetupSelectMenu(locale, userId, option)));
+        if (!components.isEmpty()) {
+            layoutComponents.add(ActionRow.of(components));
         }
 
         event.getHook()
-                .editMessageComponentsById("@original",
-                        ActionRow.of(getSetupSelectMenu(locale, userId, option)),
-                        ActionRow.of(components))
+                .editMessageComponentsById("@original", layoutComponents)
                 .queue();
     }
 
@@ -379,7 +418,19 @@ public class SlashCommandListener extends ListenerAdapter {
     // test database connection
     private void testDatabase(SlashCommandInteractionEvent event, Locale locale) {
         if (db.testConnection()) {
-            event.reply(lm.getText(locale, "textDbOk")).queue();
+            event.reply(lm.getText(locale, "textDbOk")).setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textDbError")).setEphemeral(true).queue();
+        }
+    }
+
+    // test rss feed
+    private void testRss(SlashCommandInteractionEvent event, Locale locale) {
+        // url option
+        OptionMapping urlOption = event.getOption("url");
+
+        if (Tools.testRssFeed(urlOption.getAsString())) {
+            event.reply(lm.getText(locale, "textDbOk")).setEphemeral(true).queue();
         } else {
             event.reply(lm.getText(locale, "textDbError")).setEphemeral(true).queue();
         }

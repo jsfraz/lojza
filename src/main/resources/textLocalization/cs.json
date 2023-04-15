@@ -20,9 +20,11 @@
     "textEnable": "Povolit",
     "textDisable": "Zakázat",
     "textDbErrorUser": "Nějak se mi to nepovedlo nastavit, asi je něco s databází.",
+    "textSetupRss": "RSS kanály lze spravovat následujícími příkazy:",
     "categoryHelp": "Nápověda",
     "categoryAdmin": "Admin",
     "categoryFun": "Vtípečky pro týpečky",
     "categoryDev": "Vývoj",
-    "optionLocale": "Jazyk"
+    "optionLocale": "Jazyk",
+    "optionRss": "RSS kanály"
 }

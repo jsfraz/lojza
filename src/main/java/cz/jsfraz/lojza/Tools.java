@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -12,12 +13,14 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 
@@ -69,15 +72,33 @@ public class Tools {
     public static List<Choice> getChoicesFromKeys(Set<String> keySet) {
         List<Choice> choices = new ArrayList<Choice>();
 
+        List<String> keys = new ArrayList<String>(keySet);
         // keeps removing items from set until 25 are left
-        Random rand = new Random();
-        while (keySet.size() > 25) {
-            keySet.remove(keySet.toArray()[rand.nextInt(0, keySet.size() - 1)]);
+        while (keys.size() > 25) {
+            keys.remove(keys.toArray()[keys.size() - 1]);
         }
 
-        for (String key : keySet) {
+        for (String key : keys) {
             choices.add(new Choice(key, key));
         }
         return choices;
+    }
+
+    // gets rss feed
+    public static SyndFeed getRssFeed(String url) throws Exception {
+        URL feedSource = new URL(url);
+        SyndFeedInput input = new SyndFeedInput();
+        return input.build(new XmlReader(feedSource.openStream()));
+    }
+
+    // test rss feed
+    public static boolean testRssFeed(String url) {
+        try {
+            getRssFeed(url);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
