@@ -36,16 +36,18 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 public class SlashCommandListener extends ListenerAdapter {
     private ILocalizationManager lm;
     private IDatabase db;
+    private SettingSingleton settings;
 
     public SlashCommandListener() {
         this.lm = new LocalizationManager();
         this.db = new Database();
+        this.settings = SettingSingleton.GetInstance();
     }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         // server locale
-        Locale locale = Locale.en;
+        Locale locale = settings.getDefaultLocale();
         if (event.isFromGuild()) {
             locale = db.getGuildLocale(event.getGuild().getIdLong());
         }
@@ -66,6 +68,18 @@ public class SlashCommandListener extends ListenerAdapter {
 
             case "setup": // setup command
                 setupCommand(event, locale);
+                break;
+
+            case "rss channel":
+                rssChannelCommand(event, locale);
+                break;
+
+            case "rss add":
+                rssAddCommand(event, locale);
+                break;
+
+            case "rss list":
+            // TODO RSS list, removing URLs
                 break;
 
             /* Fun commands */
@@ -338,7 +352,8 @@ public class SlashCommandListener extends ListenerAdapter {
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         // server locale
-        Locale locale = Locale.en;
+        Locale locale = settings.getDefaultLocale();
+        ;
         if (event.isFromGuild()) {
             locale = db.getGuildLocale(event.getGuild().getIdLong());
         }
@@ -364,7 +379,8 @@ public class SlashCommandListener extends ListenerAdapter {
                     event.getUser().openPrivateChannel()
                             .flatMap(x -> x
                                     .sendMessage(
-                                            MessageCreateData.fromContent(lm.getText(Locale.en, "textDbErrorUser"))))
+                                            MessageCreateData.fromContent(
+                                                    lm.getText(settings.getDefaultLocale(), "textDbErrorUser"))))
                             .queue();
                 }
                 break;
@@ -391,6 +407,34 @@ public class SlashCommandListener extends ListenerAdapter {
                 .skipTo(messageId)
                 .takeAsync(count)
                 .thenAccept(channel::purgeMessages);
+    }
+
+    // rss channel command
+    private void rssChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long guildRssChannel = db.getRssChannel(event.getGuild().getIdLong());
+
+        if (guildRssChannel != event.getGuildChannel().getIdLong()) {
+            db.updateRssChannel(event.getGuild().getIdLong(), event.getGuildChannel().getIdLong());
+            event.reply(lm.getText(locale, "textRssChannelSet")).setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textRssChannelAlreadySet")).setEphemeral(true).queue();
+        }
+    }
+
+    // rss add url command
+    private void rssAddCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // url option
+        OptionMapping urlOption = event.getOption("url");
+
+        // check if url is already in list
+        boolean exists = db.rssFeedExists(event.getGuild().getIdLong(), urlOption.getAsString());
+
+        if (exists) {
+            event.reply(lm.getText(locale, "textRssAlreadyExists")).setEphemeral(true).queue();
+        } else {
+            db.updateRssFeeds(event.getGuild().getIdLong(), urlOption.getAsString());
+            event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+        }
     }
 
     /* Fun commands */

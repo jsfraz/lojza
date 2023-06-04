@@ -36,6 +36,9 @@ public class App {
                         e.printStackTrace();
                 }
                 // environment variables
+                if (System.getenv("DEFAULT_LOCALE") != null) {
+                        settings.setDefaultLocale(Locale.valueOf(System.getenv("DEFAULT_LOCALE")));
+                }
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
                 if (System.getenv("MONGO_USER") != null) {
                         settings.setMongoUser(System.getenv("MONGO_USER"));
@@ -144,15 +147,7 @@ public class App {
                                                                                                                 .setRequired(true)),
                                                                                 // get rss channel and list of urls
                                                                                 new SubcommandData("list",
-                                                                                                "Shows text channel for sending annoucements and list of RSS channels."),
-                                                                                // remove rss channel by index
-                                                                                new SubcommandData("remove",
-                                                                                                "Removes RSS channel.")
-                                                                                                .addOptions(new OptionData(
-                                                                                                                OptionType.INTEGER,
-                                                                                                                "index",
-                                                                                                                "Index of RSS channel.")
-                                                                                                                .setRequired(true))
+                                                                                                "Shows text channel for sending annoucements and list of RSS channels.")
 
                                                                 )
 

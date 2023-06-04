@@ -8,6 +8,7 @@ public class SettingSingleton {
     private LocalDateTime started;
     private Map<String, Map<String, String>> localization;
     private Map<String, String> languagueNames;
+    private Locale defaultLocale = Locale.en;
     private CommandSet[] commandSets;
     private String discordToken; // required
     private String mongoUser = "lojza";
@@ -40,6 +41,10 @@ public class SettingSingleton {
 
     public Map<String, String> getLanguagueNames() {
         return this.languagueNames;
+    }
+
+    public Locale getDefaultLocale() {
+        return this.defaultLocale;
     }
 
     public CommandSet[] getCommandSets() {
@@ -90,6 +95,10 @@ public class SettingSingleton {
 
     public void setLanguagueNames(Map<String, String> languages) {
         this.languagueNames = languages;
+    }
+
+    public void setDefaultLocale(Locale locale) {
+        this.defaultLocale = locale;
     }
 
     public void setCommandSets(CommandSet[] commandCategories) {

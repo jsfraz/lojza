@@ -6,10 +6,11 @@ import java.util.List;
 // http://mongodb.github.io/mongo-java-driver/3.9/bson/pojos/
 
 public class DiscordGuild {
-    public long guildId;
-    public Locale locale;
-    public List<String> rssFeeds;
-    public long rssChannel;
+    private long guildId;
+    private Locale locale;
+    // TODO enabling/disabling RSS
+    private long rssChannel;
+    private List<String> rssFeeds;
 
     public DiscordGuild() {
     }
@@ -17,8 +18,8 @@ public class DiscordGuild {
     public DiscordGuild(long guildId, Locale locale) {
         this.guildId = guildId;
         this.locale = locale;
-        this.rssFeeds = new ArrayList<String>();
         this.rssChannel = 0;
+        this.rssFeeds = new ArrayList<String>();
     }
 
     /* Getters */
@@ -35,11 +36,11 @@ public class DiscordGuild {
         return this.rssChannel;
     }
 
-    /* Setters */
-
-    public void setGuildId(long guildId) {
-        this.guildId = guildId;
+    public List<String> getRssFeeds() {
+        return this.rssFeeds;
     }
+
+    /* Setters */
 
     public void setLocale(Locale locale) {
         this.locale = locale;
@@ -47,5 +48,9 @@ public class DiscordGuild {
 
     public void setRssChannel(long rssChannel) {
         this.rssChannel = rssChannel;
+    }
+
+    public void setRssFeeds(List<String> rssFeeds) {
+        this.rssFeeds = rssFeeds;
     }
 }

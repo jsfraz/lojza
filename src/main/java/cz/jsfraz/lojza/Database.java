@@ -1,6 +1,7 @@
 package cz.jsfraz.lojza;
 
 import java.beans.Introspector;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
@@ -51,6 +52,7 @@ public class Database implements IDatabase {
     }
 
     // test database connection
+    @Override
     public boolean testConnection() {
         try {
             Document document = new Document();
@@ -76,6 +78,7 @@ public class Database implements IDatabase {
     }
 
     // updates DiscordGuild locale
+    @Override
     public void updateGuildLocale(long guildId, Locale locale) throws MongoException {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
@@ -92,6 +95,7 @@ public class Database implements IDatabase {
     }
 
     // get DiscordGuild locale
+    @Override
     public Locale getGuildLocale(long guildId) {
         try {
             // gets guild locale by id
@@ -102,13 +106,89 @@ public class Database implements IDatabase {
 
             if (guild == null) {
                 // if doesn't exist in database, return default
-                return Locale.en;
+                return SettingSingleton.GetInstance().getDefaultLocale();
             } else {
                 // if exists return locale
-                return guild.locale;
+                return guild.getLocale();
             }
         } catch (Exception e) {
-            return Locale.en;
+            return SettingSingleton.GetInstance().getDefaultLocale();
+        }
+    }
+
+    // updates DiscordGuild rssChannel
+    @Override
+    public void updateRssChannel(long guildId, long rssChannel) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rssChannel", rssChannel));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setRssChannel(rssChannel);
+            collection.insertOne(guild);
+        }
+    }
+
+    // get DiscordGuild rssChannel
+    @Override
+    public long getRssChannel(long guildId) {
+        try {
+            // gets guild locale by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("rssChannel"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return 0;
+            } else {
+                // if exists return locale
+                return guild.getRssChannel();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // check whether RSS feed URL exists in DiscordGuild rssFeeds
+    @Override
+    public boolean rssFeedExists(long guildId, String url) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+        
+        if (guild != null) {
+            return guild.getRssFeeds().contains(url);
+        } else {
+            return false;
+        }
+    }
+
+    // updates DiscordGuild rssFeeds
+    @Override
+    public void updateRssFeeds(long guildId, String url) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.addToSet("rssFeeds", url));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId,
+                    SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setRssFeeds(new ArrayList<String>() {
+                {
+                    add(url);
+                }
+            });
+            collection.insertOne(guild);
         }
     }
 }
