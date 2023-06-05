@@ -90,15 +90,4 @@ public class Tools {
         SyndFeedInput input = new SyndFeedInput();
         return input.build(new XmlReader(feedSource.openStream()));
     }
-
-    // test rss feed
-    public static boolean testRssFeed(String url) {
-        try {
-            getRssFeed(url);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 }

@@ -136,18 +136,29 @@ public class App {
                                                                 .addSubcommands(
                                                                                 // sets channel to send annoucements
                                                                                 new SubcommandData("channel",
-                                                                                                "Sets current text channel as channel to send RSS annoucements to."),
+                                                                                                "Sets current text channel to send RSS annoucements to."),
                                                                                 // add RSS channel
                                                                                 new SubcommandData("add",
-                                                                                                "Adds new RSS channel.")
+                                                                                                "Adds new RSS feed.")
                                                                                                 .addOptions(new OptionData(
                                                                                                                 OptionType.STRING,
                                                                                                                 "url",
-                                                                                                                "URL of RSS channel.")
+                                                                                                                "URL of RSS feed.")
                                                                                                                 .setRequired(true)),
                                                                                 // get rss channel and list of urls
                                                                                 new SubcommandData("list",
-                                                                                                "Shows text channel for sending annoucements and list of RSS channels.")
+                                                                                                "Shows text channel for sending annoucements and list of RSS feeds."),
+                                                                                // remove rss channel by index
+                                                                                new SubcommandData("remove",
+                                                                                                "Removes RSS feed.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.INTEGER,
+                                                                                                                "index",
+                                                                                                                "Index of RSS feed.")
+                                                                                                                .setRequired(true)),
+                                                                                // clears guild's rss feed list
+                                                                                new SubcommandData("clear",
+                                                                                                "Clears RSS feed list.")
 
                                                                 )
 

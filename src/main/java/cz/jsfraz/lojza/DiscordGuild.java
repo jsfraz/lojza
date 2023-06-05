@@ -8,9 +8,11 @@ import java.util.List;
 public class DiscordGuild {
     private long guildId;
     private Locale locale;
-    // TODO enabling/disabling RSS
+    private boolean rss;
     private long rssChannel;
-    private List<String> rssFeeds;
+    private List<RssFeed> rssFeeds;
+
+    private static final long defaultRssChannel = 0;
 
     public DiscordGuild() {
     }
@@ -18,8 +20,9 @@ public class DiscordGuild {
     public DiscordGuild(long guildId, Locale locale) {
         this.guildId = guildId;
         this.locale = locale;
-        this.rssChannel = 0;
-        this.rssFeeds = new ArrayList<String>();
+        this.rss = true;
+        this.rssChannel = defaultRssChannel;
+        this.rssFeeds = new ArrayList<RssFeed>();
     }
 
     /* Getters */
@@ -32,12 +35,22 @@ public class DiscordGuild {
         return this.locale;
     }
 
+    public boolean getRss() {
+        return this.rss;
+    }
+
     public long getRssChannel() {
         return this.rssChannel;
     }
 
-    public List<String> getRssFeeds() {
+    public List<RssFeed> getRssFeeds() {
         return this.rssFeeds;
+    }
+    
+    /* Static methods */
+
+    public static long getDefaultRssChannel() {
+        return defaultRssChannel;
     }
 
     /* Setters */
@@ -46,11 +59,15 @@ public class DiscordGuild {
         this.locale = locale;
     }
 
+    public void setRss(boolean enable) {
+        this.rss = enable;
+    }
+
     public void setRssChannel(long rssChannel) {
         this.rssChannel = rssChannel;
     }
 
-    public void setRssFeeds(List<String> rssFeeds) {
+    public void setRssFeeds(List<RssFeed> rssFeeds) {
         this.rssFeeds = rssFeeds;
     }
 }

@@ -18,6 +18,7 @@ public class SettingSingleton {
     private String mongoDatabase = "lojza";
     private int mongoTimeoutMS = 100;
     private int rssRefreshMinutes = 3600;
+    private int maxRssFeedCount = 5;
 
     private SettingSingleton() {
     }
@@ -83,6 +84,10 @@ public class SettingSingleton {
         return this.rssRefreshMinutes;
     }
 
+    public int getMaxRssFeedCount() {
+        return this.maxRssFeedCount;
+    }
+
     /* Setters */
 
     public void setStarted(LocalDateTime started) {
@@ -135,5 +140,9 @@ public class SettingSingleton {
 
     public void setRssRefreshMinutes(int minutes) {
         this.rssRefreshMinutes = minutes;
+    }
+
+    public void setMaxRssFeedCount(int count) {
+        this.maxRssFeedCount = count;
     }
 }

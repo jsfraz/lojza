@@ -1,17 +1,18 @@
 package cz.jsfraz.lojza;
 
 import java.awt.Color;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.mongodb.MongoException;
+import com.rometools.rome.feed.synd.SyndFeed;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -70,16 +71,24 @@ public class SlashCommandListener extends ListenerAdapter {
                 setupCommand(event, locale);
                 break;
 
-            case "rss channel":
+            case "rss channel": // set rss channel command
                 rssChannelCommand(event, locale);
                 break;
 
-            case "rss add":
+            case "rss add": // add rss feed command
                 rssAddCommand(event, locale);
                 break;
 
-            case "rss list":
-            // TODO RSS list, removing URLs
+            case "rss list": // list rss feeds command
+                rssListCommand(event, locale);
+                break;
+
+            case "rss remove": // remove rss feed by index command
+                rssRemoveCommand(event, locale);
+                break;
+
+            case "rss clear": // clear rss feed list command
+                rssClearCommand(event, locale);
                 break;
 
             /* Fun commands */
@@ -238,21 +247,6 @@ public class SlashCommandListener extends ListenerAdapter {
                 components.add(localeMenuBuilder.build());
                 break;
 
-            case rss: // rss
-                // get admin commands starting with "rss"
-                Optional<CommandSet> set = Arrays.asList(SettingSingleton.GetInstance().getCommandSets()).stream()
-                        .filter(x -> x.getCategory() == CommandCategory.categoryAdmin).findFirst();
-                List<CommandData> rssCommands = Arrays.asList(set.get().commands).stream()
-                        .filter(x -> x.getName().startsWith("rss")).toList();
-                String commands = getCommandHelp(rssCommands.toArray(new CommandData[0])).replaceAll("\n", " ");
-                event.getUser().openPrivateChannel()
-                        .flatMap(x -> x
-                                .sendMessage(
-                                        MessageCreateData
-                                                .fromContent(lm.getText(locale, "textSetupRss") + " " + commands)))
-                        .queue();
-                break;
-
             default: // anything else (enable/disable buttons)
                 Button[] buttons = getSetupEnableDisableButtons(locale, userId, option);
                 for (Button button : buttons) {
@@ -303,7 +297,7 @@ public class SlashCommandListener extends ListenerAdapter {
         if (option != null) {
             o = ":" + option.name();
         }
-        Button[] components = new Button[] { Button.success(userId + ":enable",
+        Button[] components = new Button[] { Button.success(userId + ":enable" + o,
                 lm.getText(locale, "textEnable")),
                 Button.danger(userId + ":disable" + o, lm.getText(locale, "textDisable")) };
         return components;
@@ -323,6 +317,7 @@ public class SlashCommandListener extends ListenerAdapter {
         event.deferEdit().queue();
 
         TextChannel channel = (TextChannel) event.getChannel();
+
         switch (ids[1]) {
             // delete all messages
             case "deleteAll":
@@ -344,6 +339,28 @@ public class SlashCommandListener extends ListenerAdapter {
             // delete the prompt message
             case "cancel":
                 event.getHook().deleteOriginal().queue();
+                break;
+
+            // enabling
+            case "enable":
+                switch (ids[2]) {
+
+                    // rss
+                    case "rss":
+                        db.updateRss(event.getGuild().getIdLong(), true);
+                        break;
+                }
+                break;
+
+            // disabling
+            case "disable":
+                switch (ids[2]) {
+
+                    // rss
+                    case "rss":
+                        db.updateRss(event.getGuild().getIdLong(), false);
+                        break;
+                }
                 break;
         }
     }
@@ -425,16 +442,91 @@ public class SlashCommandListener extends ListenerAdapter {
     private void rssAddCommand(SlashCommandInteractionEvent event, Locale locale) {
         // url option
         OptionMapping urlOption = event.getOption("url");
+        // Discord guild rss feed count
+        int rssCount = db.getRssFeeds(event.getGuild().getIdLong()).size();
 
-        // check if url is already in list
-        boolean exists = db.rssFeedExists(event.getGuild().getIdLong(), urlOption.getAsString());
+        if (rssCount < settings.getMaxRssFeedCount()) {
+            try {
+                // check url
+                new URL(urlOption.getAsString());
 
-        if (exists) {
-            event.reply(lm.getText(locale, "textRssAlreadyExists")).setEphemeral(true).queue();
+                // check if url is already in list
+                boolean exists = db.rssFeedExists(event.getGuild().getIdLong(), urlOption.getAsString());
+
+                if (exists) {
+                    event.reply(lm.getText(locale, "textRssAlreadyExists")).setEphemeral(true).queue();
+                } else {
+                    // test RSS url
+                    try {
+                        SyndFeed feed = Tools.getRssFeed(urlOption.getAsString());
+
+                        db.updateRssFeeds(event.getGuild().getIdLong(), feed.getTitle(), urlOption.getAsString());
+                        event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+                    } catch (Exception e) {
+                        event.reply(lm.getText(locale, "textInvalidRssSource")).setEphemeral(true).queue();
+                    }
+                }
+            } catch (MalformedURLException e) {
+                event.reply(lm.getText(locale, "textInvalidRssUrl")).setEphemeral(true).queue();
+            }
         } else {
-            db.updateRssFeeds(event.getGuild().getIdLong(), urlOption.getAsString());
-            event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+            event.reply(String.format(lm.getText(locale, "textRssFeedLimit"), settings.getMaxRssFeedCount()))
+                    .setEphemeral(true).queue();
         }
+    }
+
+    // rss list command
+    private void rssListCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long channelId = db.getRssChannel(event.getGuild().getIdLong());
+
+        // check if channel is set
+        if (channelId != DiscordGuild.getDefaultRssChannel()) {
+            EmbedBuilder eb = new EmbedBuilder();
+            eb.setTitle(lm.getText(locale, "textRssConfig"));
+            eb.setColor(Color.yellow);
+            eb.addField(lm.getText(locale, "textRssChannel"), String.format("<#%s>", Long.toString(channelId)), false);
+            List<RssFeed> guildUrls = db.getRssFeeds(event.getGuild().getIdLong());
+            String urls = "";
+            if (!guildUrls.isEmpty()) {
+                for (int i = 0; i < guildUrls.size(); i++) {
+                    urls += "`" + (i + 1) + ")`  [" + guildUrls.get(i).getTitle() + "](" + guildUrls.get(i).getUrl()
+                            + ")";
+                    if (i != guildUrls.size() - 1) {
+                        urls += "\n";
+                    }
+                }
+            } else {
+                urls += "*" + lm.getText(locale, "rssListEmpty") + "*";
+            }
+            eb.addField(lm.getText(locale, "textRssSources"), urls, false);
+
+            // reply with embed
+            event.replyEmbeds(eb.build()).setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textRssChannelNotSet")).setEphemeral(true).queue();
+        }
+    }
+
+    // rss remove command
+    private void rssRemoveCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // index option
+        OptionMapping indexOption = event.getOption("index");
+        // Discord guild rss feed count
+        int rssCount = db.getRssFeeds(event.getGuild().getIdLong()).size();
+
+        // check index range
+        if (indexOption.getAsInt() > 0 && indexOption.getAsInt() <= rssCount) {
+            db.removeRssFeed(event.getGuild().getIdLong(), indexOption.getAsInt() - 1);
+            event.reply("textRssRemoved").setEphemeral(true).queue();
+        } else {
+            event.reply("textRssInvalidRange").setEphemeral(true).queue();
+        }
+    }
+
+    // rss clear command
+    private void rssClearCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.clearRssFeeds(event.getGuild().getIdLong());
+        event.reply(lm.getText(locale, "textRssCleared")).setEphemeral(true).queue();
     }
 
     /* Fun commands */
@@ -473,7 +565,15 @@ public class SlashCommandListener extends ListenerAdapter {
         // url option
         OptionMapping urlOption = event.getOption("url");
 
-        if (Tools.testRssFeed(urlOption.getAsString())) {
+        boolean ok = false;
+        try {
+            Tools.getRssFeed(urlOption.getAsString());
+            ok = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (ok) {
             event.reply(lm.getText(locale, "textDbOk")).setEphemeral(true).queue();
         } else {
             event.reply(lm.getText(locale, "textDbError")).setEphemeral(true).queue();

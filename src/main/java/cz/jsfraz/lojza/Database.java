@@ -2,6 +2,8 @@ package cz.jsfraz.lojza;
 
 import java.beans.Introspector;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
@@ -116,6 +118,24 @@ public class Database implements IDatabase {
         }
     }
 
+    // updates DiscordGuild rss
+    @Override
+    public void updateRss(long guildId, boolean value) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rss", value));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setRss(value);
+            collection.insertOne(guild);
+        }
+    }
+
     // updates DiscordGuild rssChannel
     @Override
     public void updateRssChannel(long guildId, long rssChannel) {
@@ -148,7 +168,7 @@ public class Database implements IDatabase {
                 // if doesn't exist in database, return default
                 return 0;
             } else {
-                // if exists return locale
+                // if exists return
                 return guild.getRssChannel();
             }
         } catch (Exception e) {
@@ -161,9 +181,10 @@ public class Database implements IDatabase {
     public boolean rssFeedExists(long guildId, String url) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
-        
+
         if (guild != null) {
-            return guild.getRssFeeds().contains(url);
+            Optional<RssFeed> feed = guild.getRssFeeds().stream().filter(x -> x.getUrl().equals(url)).findFirst();
+            return feed.isPresent();
         } else {
             return false;
         }
@@ -171,24 +192,70 @@ public class Database implements IDatabase {
 
     // updates DiscordGuild rssFeeds
     @Override
-    public void updateRssFeeds(long guildId, String url) {
+    public void updateRssFeeds(long guildId, String title, String url) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
         MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
         if (guild != null) {
             // update if exists
-            collection.updateOne(Filters.eq("guildId", guildId), Updates.addToSet("rssFeeds", url));
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.addToSet("rssFeeds", new RssFeed(title, url)));
         } else {
             // insert if doesn't exist
             guild = new DiscordGuild(guildId,
                     SettingSingleton.GetInstance().getDefaultLocale());
-            guild.setRssFeeds(new ArrayList<String>() {
-                {
-                    add(url);
-                }
-            });
+            guild.getRssFeeds().add(new RssFeed(title, url));
             collection.insertOne(guild);
+        }
+    }
+
+    // get DiscordGuild rssFeeds
+    @Override
+    public List<RssFeed> getRssFeeds(long guildId) {
+        try {
+            // gets guild locale by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("rssFeeds"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return new ArrayList<RssFeed>();
+            } else {
+                // if exists return
+                return guild.getRssFeeds();
+            }
+        } catch (Exception e) {
+            return new ArrayList<RssFeed>();
+        }
+    }
+
+    // removes item from DiscordGuild rssFeeds by index
+    @Override
+    public void removeRssFeed(long guildId, int index) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // index
+            String url = getRssFeeds(guildId).get(index).getUrl();
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.pull("rssFeeds", Filters.eq("url", url)));
+        }
+    }
+
+    // set DiscordGuild rssFeeds to an empty array
+    @Override
+    public void clearRssFeeds(long guildId) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rssFeeds", new ArrayList<RssFeed>()));
         }
     }
 }
