@@ -2,6 +2,7 @@ package cz.jsfraz.lojza;
 
 import java.beans.Introspector;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +18,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -145,11 +147,11 @@ public class Database implements IDatabase {
         MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
         if (guild != null) {
             // update if exists
-            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rssChannel", rssChannel));
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rssChannelId", rssChannel));
         } else {
             // insert if doesn't exist
             guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
-            guild.setRssChannel(rssChannel);
+            guild.setRssChannelId(rssChannel);
             collection.insertOne(guild);
         }
     }
@@ -161,7 +163,7 @@ public class Database implements IDatabase {
             // gets guild locale by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
             Bson filter = Filters.eq("guildId", guildId);
-            Bson projection = Projections.fields(Projections.include("rssChannel"));
+            Bson projection = Projections.fields(Projections.include("rssChannelId"));
             DiscordGuild guild = collection.find(filter).projection(projection).first();
 
             if (guild == null) {
@@ -169,7 +171,7 @@ public class Database implements IDatabase {
                 return 0;
             } else {
                 // if exists return
-                return guild.getRssChannel();
+                return guild.getRssChannelId();
             }
         } catch (Exception e) {
             return 0;
@@ -257,5 +259,35 @@ public class Database implements IDatabase {
             // update if exists
             collection.updateOne(Filters.eq("guildId", guildId), Updates.set("rssFeeds", new ArrayList<RssFeed>()));
         }
+    }
+
+    // returns all guilds with enabled rss and non-empty feed list
+    @Override
+    public List<DiscordGuild> getGuildsRss() {
+        MongoCursor<DiscordGuild> cursor = getDiscordGuildCollection()
+                .find(Filters.and(Filters.eq("rss", true),
+                        Filters.not(Filters.eq("rssFeeds", new ArrayList<RssFeed>()))))
+                .projection(Projections.fields(Projections.include("guildId", "locale" , "rssChannelId", "rssFeeds"))).iterator();
+
+        List<DiscordGuild> list = new ArrayList<DiscordGuild>();
+        while (cursor.hasNext()) {
+            list.add(cursor.next());
+        }
+        cursor.close();
+        return list;
+    }
+
+    // updates rssFeeds update date
+    @Override
+    public void updateRssUpdatedDate(long guildId, String url, Date updated) {
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        Bson filters = Filters.and(Filters.eq("rss", true), Filters.elemMatch("rssFeeds", Filters.eq("url", url)));
+        DiscordGuild guild = collection.find(filters).projection(Projections.fields(Projections.include("rssFeeds"))).first();
+        List<RssFeed> feeds = guild.getRssFeeds();
+        int index = feeds.indexOf(feeds.stream().filter(x -> x.getUrl().equals(url)).findFirst().get());
+        RssFeed feed = feeds.get(index);
+        feed.setUpdated(updated);
+        feeds.set(index, feed);
+        collection.updateOne(filters, Updates.set("rssFeeds", feeds));
     }
 }

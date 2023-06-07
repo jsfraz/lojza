@@ -148,7 +148,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // I forgot how this works
     private String getCommandHelp(CommandData[] commands) {
-        // TODO future support for SubcommandGroups
+        // TODO support for SubcommandGroups
         String text = "";
         for (CommandData commandData : commands) {
             if (commandData.getType() == Type.SLASH) {
@@ -445,7 +445,7 @@ public class SlashCommandListener extends ListenerAdapter {
         // Discord guild rss feed count
         int rssCount = db.getRssFeeds(event.getGuild().getIdLong()).size();
 
-        if (rssCount < settings.getMaxRssFeedCount()) {
+        if (rssCount < settings.getRssMaxFeedCount()) {
             try {
                 // check url
                 new URL(urlOption.getAsString());
@@ -470,7 +470,7 @@ public class SlashCommandListener extends ListenerAdapter {
                 event.reply(lm.getText(locale, "textInvalidRssUrl")).setEphemeral(true).queue();
             }
         } else {
-            event.reply(String.format(lm.getText(locale, "textRssFeedLimit"), settings.getMaxRssFeedCount()))
+            event.reply(String.format(lm.getText(locale, "textRssFeedLimit"), settings.getRssMaxFeedCount()))
                     .setEphemeral(true).queue();
         }
     }
@@ -480,7 +480,7 @@ public class SlashCommandListener extends ListenerAdapter {
         long channelId = db.getRssChannel(event.getGuild().getIdLong());
 
         // check if channel is set
-        if (channelId != DiscordGuild.getDefaultRssChannel()) {
+        if (channelId != DiscordGuild.getDefaultRssChannelId()) {
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle(lm.getText(locale, "textRssConfig"));
             eb.setColor(Color.yellow);
@@ -517,9 +517,9 @@ public class SlashCommandListener extends ListenerAdapter {
         // check index range
         if (indexOption.getAsInt() > 0 && indexOption.getAsInt() <= rssCount) {
             db.removeRssFeed(event.getGuild().getIdLong(), indexOption.getAsInt() - 1);
-            event.reply("textRssRemoved").setEphemeral(true).queue();
+            event.reply(lm.getText(locale, "textRssRemoved")).setEphemeral(true).queue();
         } else {
-            event.reply("textRssInvalidRange").setEphemeral(true).queue();
+            event.reply(lm.getText(locale, "textRssInvalidRange")).setEphemeral(true).queue();
         }
     }
 

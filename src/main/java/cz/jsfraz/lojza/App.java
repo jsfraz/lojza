@@ -2,6 +2,9 @@ package cz.jsfraz.lojza;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -21,6 +24,8 @@ import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 // https://github.com/DV8FromTheWorld/JDA/tree/master/src/examples/java
 
 public class App {
+        private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
         public static void main(String[] args) {
                 LocalDateTime started = LocalDateTime.now();
 
@@ -54,8 +59,11 @@ public class App {
                 if (System.getenv("MONGO_TIMEOUT") != null) {
                         settings.setMongoTimeoutMS(Integer.parseInt(System.getenv("MONGO_TIMEOUT")));
                 }
-                if (System.getenv("RSS_REFRESH") != null) {
-                        settings.setRssRefreshMinutes(Integer.parseInt(System.getenv("RSS_REFRESH")));
+                if (System.getenv("RSS_REFRESH_MINUTES") != null) {
+                        settings.setRssRefreshMinutes(Integer.parseInt(System.getenv("RSS_REFRESH_MINUTES")));
+                }
+                if (System.getenv("RSS_FETCH_OLDER_THAN_MINUTES") != null) {
+                        settings.setRssFetchOlderThanMinutes(Integer.parseInt(System.getenv("RSS_FETCH_OLDER_THAN_MINUTES")));
                 }
 
                 // localization function for command descriptions
@@ -263,5 +271,19 @@ public class App {
 
                 // send the new set of commands to discord
                 commands.queue();
+                
+                // set JDA instance in singleton
+                settings.setJdaInstance(jda); 
+
+                // wait until jda is ready
+                try {
+                        jda.awaitReady();
+                } catch (InterruptedException e) {
+                        e.printStackTrace();
+                }
+
+                // periodic RSS update
+                scheduler.scheduleAtFixedRate(new RssUpdateRunnable(), 0,
+                                settings.getRssRefreshMinutes(), TimeUnit.MINUTES);
         }
 }

@@ -1,5 +1,6 @@
 package cz.jsfraz.lojza;
 
+import java.util.Date;
 import java.util.List;
 
 import com.mongodb.MongoException;
@@ -26,4 +27,8 @@ public interface IDatabase {
     public void removeRssFeed(long guildId, int index);
 
     public void clearRssFeeds(long guildId);
+
+    public List<DiscordGuild> getGuildsRss();
+
+    public void updateRssUpdatedDate(long guildId, String url, Date updated);
 }

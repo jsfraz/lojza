@@ -9,10 +9,10 @@ public class DiscordGuild {
     private long guildId;
     private Locale locale;
     private boolean rss;
-    private long rssChannel;
+    private long rssChannelId;
     private List<RssFeed> rssFeeds;
 
-    private static final long defaultRssChannel = 0;
+    private static final long defaultRssChannelId = 0;
 
     public DiscordGuild() {
     }
@@ -21,53 +21,55 @@ public class DiscordGuild {
         this.guildId = guildId;
         this.locale = locale;
         this.rss = true;
-        this.rssChannel = defaultRssChannel;
+        this.rssChannelId = defaultRssChannelId;
         this.rssFeeds = new ArrayList<RssFeed>();
     }
 
-    /* Getters */
+    public static long getDefaultRssChannelId() {
+        return defaultRssChannelId;
+    }
 
     public long getGuildId() {
         return this.guildId;
+    }
+
+    public void setGuildId(long guildId) {
+        this.guildId = guildId;
     }
 
     public Locale getLocale() {
         return this.locale;
     }
 
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+    }
+
+    public boolean isRss() {
+        return this.rss;
+    }
+
     public boolean getRss() {
         return this.rss;
     }
 
-    public long getRssChannel() {
-        return this.rssChannel;
+    public void setRss(boolean rss) {
+        this.rss = rss;
+    }
+
+    public long getRssChannelId() {
+        return this.rssChannelId;
+    }
+
+    public void setRssChannelId(long rssChannelId) {
+        this.rssChannelId = rssChannelId;
     }
 
     public List<RssFeed> getRssFeeds() {
         return this.rssFeeds;
     }
-    
-    /* Static methods */
-
-    public static long getDefaultRssChannel() {
-        return defaultRssChannel;
-    }
-
-    /* Setters */
-
-    public void setLocale(Locale locale) {
-        this.locale = locale;
-    }
-
-    public void setRss(boolean enable) {
-        this.rss = enable;
-    }
-
-    public void setRssChannel(long rssChannel) {
-        this.rssChannel = rssChannel;
-    }
 
     public void setRssFeeds(List<RssFeed> rssFeeds) {
         this.rssFeeds = rssFeeds;
-    }
+    }    
 }

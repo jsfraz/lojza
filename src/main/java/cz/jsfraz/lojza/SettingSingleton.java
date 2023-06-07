@@ -3,6 +3,8 @@ package cz.jsfraz.lojza;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import net.dv8tion.jda.api.JDA;
+
 public class SettingSingleton {
     private static SettingSingleton instance;
     private LocalDateTime started;
@@ -11,14 +13,24 @@ public class SettingSingleton {
     private Locale defaultLocale = Locale.en;
     private CommandSet[] commandSets;
     private String discordToken; // required
+    private JDA jdaInstance;
     private String mongoUser = "lojza";
     private String mongoPassword; // required
     private String mongoServer; // required
     private int mongoPort = 27017;
     private String mongoDatabase = "lojza";
     private int mongoTimeoutMS = 100;
-    private int rssRefreshMinutes = 3600;
-    private int maxRssFeedCount = 5;
+    private int rssRefreshMinutes = 60;
+    private int rssFetchOlderThanMinutes = 60;
+
+    public int getRssFetchOlderThanMinutes() {
+        return this.rssFetchOlderThanMinutes;
+    }
+
+    public void setRssFetchOlderThanMinutes(int rssFetchOlderThanMinutes) {
+        this.rssFetchOlderThanMinutes = rssFetchOlderThanMinutes;
+    }
+    private int rssMaxFeedCount = 5;
 
     private SettingSingleton() {
     }
@@ -30,119 +42,123 @@ public class SettingSingleton {
         return instance;
     }
 
-    /* Getters */
-
     public LocalDateTime getStarted() {
         return this.started;
+    }
+
+    public JDA getJdaInstance() {
+        return this.jdaInstance;
+    }
+
+    public void setJdaInstance(JDA jdaInstance) {
+        this.jdaInstance = jdaInstance;
+    }
+
+    public void setStarted(LocalDateTime started) {
+        this.started = started;
     }
 
     public Map<String, Map<String, String>> getLocalization() {
         return this.localization;
     }
 
+    public void setLocalization(Map<String, Map<String, String>> localization) {
+        this.localization = localization;
+    }
+
     public Map<String, String> getLanguagueNames() {
         return this.languagueNames;
+    }
+
+    public void setLanguagueNames(Map<String, String> languagueNames) {
+        this.languagueNames = languagueNames;
     }
 
     public Locale getDefaultLocale() {
         return this.defaultLocale;
     }
 
+    public void setDefaultLocale(Locale defaultLocale) {
+        this.defaultLocale = defaultLocale;
+    }
+
     public CommandSet[] getCommandSets() {
         return this.commandSets;
+    }
+
+    public void setCommandSets(CommandSet[] commandSets) {
+        this.commandSets = commandSets;
     }
 
     public String getDiscordToken() {
         return this.discordToken;
     }
 
+    public void setDiscordToken(String discordToken) {
+        this.discordToken = discordToken;
+    }
+
     public String getMongoUser() {
         return this.mongoUser;
-    }
-
-    public String getMongoPassword() {
-        return this.mongoPassword;
-    }
-
-    public String getMongoServer() {
-        return this.mongoServer;
-    }
-
-    public int getMongoPort() {
-        return this.mongoPort;
-    }
-
-    public String getMongoDatabase() {
-        return this.mongoDatabase;
-    }
-
-    public int getMongoTimeoutMS() {
-        return this.mongoTimeoutMS;
-    }
-
-    public int getRssRefreshMinutes() {
-        return this.rssRefreshMinutes;
-    }
-
-    public int getMaxRssFeedCount() {
-        return this.maxRssFeedCount;
-    }
-
-    /* Setters */
-
-    public void setStarted(LocalDateTime started) {
-        this.started = started;
-    }
-
-    public void setLocalization(Map<String, Map<String, String>> localization) {
-        this.localization = localization;
-    }
-
-    public void setLanguagueNames(Map<String, String> languages) {
-        this.languagueNames = languages;
-    }
-
-    public void setDefaultLocale(Locale locale) {
-        this.defaultLocale = locale;
-    }
-
-    public void setCommandSets(CommandSet[] commandCategories) {
-        this.commandSets = commandCategories;
-    }
-
-    public void setDiscordToken(String token) {
-        this.discordToken = token;
     }
 
     public void setMongoUser(String mongoUser) {
         this.mongoUser = mongoUser;
     }
 
+    public String getMongoPassword() {
+        return this.mongoPassword;
+    }
+
     public void setMongoPassword(String mongoPassword) {
         this.mongoPassword = mongoPassword;
+    }
+
+    public String getMongoServer() {
+        return this.mongoServer;
     }
 
     public void setMongoServer(String mongoServer) {
         this.mongoServer = mongoServer;
     }
 
+    public int getMongoPort() {
+        return this.mongoPort;
+    }
+
     public void setMongoPort(int mongoPort) {
         this.mongoPort = mongoPort;
+    }
+
+    public String getMongoDatabase() {
+        return this.mongoDatabase;
     }
 
     public void setMongoDatabase(String mongoDatabase) {
         this.mongoDatabase = mongoDatabase;
     }
 
-    public void setMongoTimeoutMS(int timeout) {
-        this.mongoTimeoutMS = timeout;
+    public int getMongoTimeoutMS() {
+        return this.mongoTimeoutMS;
     }
 
-    public void setRssRefreshMinutes(int minutes) {
-        this.rssRefreshMinutes = minutes;
+    public void setMongoTimeoutMS(int mongoTimeoutMS) {
+        this.mongoTimeoutMS = mongoTimeoutMS;
     }
 
-    public void setMaxRssFeedCount(int count) {
-        this.maxRssFeedCount = count;
+    public int getRssRefreshMinutes() {
+        return this.rssRefreshMinutes;
+    }
+
+    public void setRssRefreshMinutes(int rssRefreshMinutes) {
+        this.rssRefreshMinutes = rssRefreshMinutes;
+    }
+
+    public int getRssMaxFeedCount() {
+        return this.rssMaxFeedCount;
+    }
+
+    public void setRssMaxFeedCount(int maxRssFeedCount) {
+        this.rssMaxFeedCount = maxRssFeedCount;
     }
 }
