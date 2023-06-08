@@ -6,7 +6,6 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -15,18 +14,12 @@ import com.mongodb.MongoException;
 import com.rometools.rome.feed.synd.SyndFeed;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.Command.Type;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
@@ -123,67 +116,8 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // help
     private void helpCommand(SlashCommandInteractionEvent event, Locale locale) {
-        // command categories
-        CommandSet[] commandSets = SettingSingleton.GetInstance().getCommandSets();
-
-        // embed
-        EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle(lm.getText(locale, "textHelpTitle"));
-        eb.setColor(Color.yellow);
-        eb.addField(lm.getText(locale, "textHelpDescTitle"),
-                lm.getText(locale, "textHelpDesc"),
-                false);
-
-        // gets commands as string
-        for (CommandSet commandSet : commandSets) {
-            String commands = getCommandHelp(commandSet.commands);
-
-            eb.addField("**" + commandSet.getDisplayEmoji() + " " + lm.getText(locale, commandSet.getCategory().name())
-                    + "**", commands, true);
-        }
-
         // reply with embed
-        event.replyEmbeds(eb.build()).queue();
-    }
-
-    // I forgot how this works
-    private String getCommandHelp(CommandData[] commands) {
-        // TODO support for SubcommandGroups
-        String text = "";
-        for (CommandData commandData : commands) {
-            if (commandData.getType() == Type.SLASH) {
-                SlashCommandData slash = (SlashCommandData) commandData;
-                List<SubcommandData> subcommands = slash.getSubcommands();
-                if (subcommands.isEmpty()) {
-                    List<OptionData> options = slash.getOptions();
-                    String command = "`/" + slash.getName();
-                    for (OptionData option : options) {
-                        if (option.isRequired()) {
-                            command += " " + option.getName();
-                        } else {
-                            command += " [" + option.getName() + "]";
-                        }
-                    }
-                    command += "`";
-                    text += command + "\n";
-                } else {
-                    for (SubcommandData subcommand : subcommands) {
-                        List<OptionData> options = subcommand.getOptions();
-                        String command = "`/" + slash.getName() + " " + subcommand.getName();
-                        for (OptionData option : options) {
-                            if (option.isRequired()) {
-                                command += " [" + option.getName() + "]";
-                            } else {
-                                command += " (" + option.getName() + ")";
-                            }
-                        }
-                        command += "`";
-                        text += command + "\n";
-                    }
-                }
-            }
-        }
-        return text;
+        event.replyEmbeds(Tools.getHelpEmbed(lm, locale)).queue();
     }
 
     /* Admin commands */
@@ -224,7 +158,7 @@ public class SlashCommandListener extends ListenerAdapter {
     // setup command
     private void setupCommand(SlashCommandInteractionEvent event, Locale locale) {
         String userId = event.getUser().getId();
-        event.replyEmbeds(getSetupEmbed(locale)).addActionRow(getSetupSelectMenu(locale, userId, null))
+        event.replyEmbeds(Tools.getSetupEmbed(lm, locale)).addActionRow(Tools.getSetupSelectMenu(lm, locale, userId, null))
                 .setEphemeral(true).queue();
     }
 
@@ -257,7 +191,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // componenets to send
         List<LayoutComponent> layoutComponents = new ArrayList<LayoutComponent>();
-        layoutComponents.add(ActionRow.of(getSetupSelectMenu(locale, userId, option)));
+        layoutComponents.add(ActionRow.of(Tools.getSetupSelectMenu(lm, locale, userId, option)));
         if (!components.isEmpty()) {
             layoutComponents.add(ActionRow.of(components));
         }
@@ -265,30 +199,6 @@ public class SlashCommandListener extends ListenerAdapter {
         event.getHook()
                 .editMessageComponentsById("@original", layoutComponents)
                 .queue();
-    }
-
-    // setup embed
-    private MessageEmbed getSetupEmbed(Locale locale) {
-        EmbedBuilder eb = new EmbedBuilder();
-        eb.setColor(Color.decode("#2b2d31"));
-        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"), false);
-        return eb.build();
-    }
-
-    // setup select menu
-    private StringSelectMenu getSetupSelectMenu(Locale locale, String userId, SetupOption option) {
-        // https://stackoverflow.com/questions/74833816/how-to-send-dropdown-menu-in-java-discord-api
-        StringSelectMenu.Builder selectMenuBuilder = StringSelectMenu.create(userId + ":setupMenu");
-        for (SetupOption o : EnumSet.allOf(SetupOption.class)) {
-            selectMenuBuilder.addOption(
-                    lm.getText(locale, "option" + o.name().substring(0, 1).toUpperCase() + o.name().substring(1)),
-                    o.name());
-            // setting default option
-            if (o == option) {
-                selectMenuBuilder.setDefaultValues(o.name());
-            }
-        }
-        return selectMenuBuilder.build();
     }
 
     // setup enable/disable buttons
@@ -303,7 +213,7 @@ public class SlashCommandListener extends ListenerAdapter {
         return components;
     }
 
-    // button interaction
+    // button interaction (with user id first)
     // https://github.com/DV8FromTheWorld/JDA/blob/master/src/examples/java/SlashBotExample.java#L116
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
@@ -370,7 +280,7 @@ public class SlashCommandListener extends ListenerAdapter {
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         // server locale
         Locale locale = settings.getDefaultLocale();
-        ;
+        
         if (event.isFromGuild()) {
             locale = db.getGuildLocale(event.getGuild().getIdLong());
         }
@@ -432,6 +342,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
         if (guildRssChannel != event.getGuildChannel().getIdLong()) {
             db.updateRssChannel(event.getGuild().getIdLong(), event.getGuildChannel().getIdLong());
+            // TODO fetch new posts
             event.reply(lm.getText(locale, "textRssChannelSet")).setEphemeral(true).queue();
         } else {
             event.reply(lm.getText(locale, "textRssChannelAlreadySet")).setEphemeral(true).queue();
@@ -462,6 +373,8 @@ public class SlashCommandListener extends ListenerAdapter {
 
                         db.updateRssFeeds(event.getGuild().getIdLong(), feed.getTitle(), urlOption.getAsString());
                         event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+
+                        // TODO fetch new posts from this RSS feed
                     } catch (Exception e) {
                         event.reply(lm.getText(locale, "textInvalidRssSource")).setEphemeral(true).queue();
                     }
@@ -533,7 +446,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // greet command
     private void greetCommand(SlashCommandInteractionEvent event, Locale locale) {
-        event.reply(lm.getText(locale, "textGreet")).queue();
+        event.reply(String.format(lm.getText(locale, "textGreet"), event.getUser().getIdLong())).queue();
     }
 
     /* Developer commands */

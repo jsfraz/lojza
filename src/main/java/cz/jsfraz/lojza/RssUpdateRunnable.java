@@ -13,6 +13,7 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class RssUpdateRunnable implements Runnable {
     private ILocalizationManager lm;
@@ -53,7 +54,7 @@ public class RssUpdateRunnable implements Runnable {
                                         Date now = new Date();
                                         Date lastRefresh = new Date(
                                                 System.currentTimeMillis()
-                                                        - settings.getRssFetchOlderThanMinutes() * 60 * 1000);
+                                                        - settings.getRssRefreshMinutes() * 60 * 1000);
                                         // don't refresh if last refresh was less than hour ago (restarts and similiar
                                         // situations)
                                         if (feed.getUpdated().after(lastRefresh)) {
@@ -74,7 +75,7 @@ public class RssUpdateRunnable implements Runnable {
                                         db.updateRssUpdatedDate(guild.getGuildId(), feed.getUrl(), now);
 
                                         boolean success = false;
-                                        
+
                                         for (SyndEntry entry : entries) {
                                             try {
                                                 // create embed
@@ -124,6 +125,14 @@ public class RssUpdateRunnable implements Runnable {
                     }
                 };
                 guildTasks.add(guildCallable);
+            } else {
+                // send message to first channel
+                for (TextChannel channel : settings.getJdaInstance().getTextChannels()) {
+                    if (channel.canTalk()) {
+                        channel.sendMessage(lm.getText(guild.getLocale(), "textRssChannelNotSet")).queue();
+                        break;
+                    }
+                }
             }
         }
         try {

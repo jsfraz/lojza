@@ -3,12 +3,16 @@ package cz.jsfraz.lojza;
 import java.util.Date;
 import java.util.List;
 
-import com.mongodb.MongoException;
-
 public interface IDatabase {
     public boolean testConnection();
 
-    public void updateGuildLocale(long guildId, Locale locale) throws MongoException;
+    public List<Long> getAllGuildIds();
+
+    public void insertGuild(DiscordGuild guild);
+
+    public void deleteGuild(long guildId);
+
+    public void updateGuildLocale(long guildId, Locale locale) ;
 
     public Locale getGuildLocale(long guildId);
 

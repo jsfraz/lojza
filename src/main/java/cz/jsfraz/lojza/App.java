@@ -41,9 +41,6 @@ public class App {
                         e.printStackTrace();
                 }
                 // environment variables
-                if (System.getenv("DEFAULT_LOCALE") != null) {
-                        settings.setDefaultLocale(Locale.valueOf(System.getenv("DEFAULT_LOCALE")));
-                }
                 settings.setDiscordToken(System.getenv("DISCORD_TOKEN"));
                 if (System.getenv("MONGO_USER") != null) {
                         settings.setMongoUser(System.getenv("MONGO_USER"));
@@ -60,10 +57,12 @@ public class App {
                         settings.setMongoTimeoutMS(Integer.parseInt(System.getenv("MONGO_TIMEOUT")));
                 }
                 if (System.getenv("RSS_REFRESH_MINUTES") != null) {
-                        settings.setRssRefreshMinutes(Integer.parseInt(System.getenv("RSS_REFRESH_MINUTES")));
-                }
-                if (System.getenv("RSS_FETCH_OLDER_THAN_MINUTES") != null) {
-                        settings.setRssFetchOlderThanMinutes(Integer.parseInt(System.getenv("RSS_FETCH_OLDER_THAN_MINUTES")));
+                        int value = Integer.parseInt(System.getenv("RSS_REFRESH_MINUTES"));
+                        if (value > 1440 || value < 15) {
+                                System.out.println("RSS_REFRESH_MINUTES: value between 15 and 1440 expected.");
+                        } else {
+                                settings.setRssRefreshMinutes(value);
+                        }
                 }
 
                 // localization function for command descriptions
@@ -184,7 +183,7 @@ public class App {
                                                                 .setLocalizationFunction(localizationFunction)
                                 }),
                                 // developer commands
-                                new CommandSet(CommandCategory.categoryDev, ":technologist:", new CommandData[] {
+                                new CommandSet(CommandCategory.categoryDev, ":man_technologist:", new CommandData[] {
                                                 // test command
                                                 Commands.slash("test", "Command for testing purposes.")
                                                                 .setLocalizationFunction(localizationFunction)
@@ -261,7 +260,8 @@ public class App {
 
                 // JDA instance
                 JDABuilder builder = JDABuilder.createDefault(settings.getDiscordToken());
-                JDA jda = builder.addEventListeners(new SlashCommandListener()).build();
+                JDA jda = builder.addEventListeners(new SlashCommandListener())
+                                .addEventListeners(new GuildEventListener()).build();
 
                 // updating bot commands (might take a few minutes to be applied)
                 CommandListUpdateAction commands = jda.updateCommands();
@@ -271,9 +271,9 @@ public class App {
 
                 // send the new set of commands to discord
                 commands.queue();
-                
+
                 // set JDA instance in singleton
-                settings.setJdaInstance(jda); 
+                settings.setJdaInstance(jda);
 
                 // wait until jda is ready
                 try {
@@ -281,6 +281,9 @@ public class App {
                 } catch (InterruptedException e) {
                         e.printStackTrace();
                 }
+
+                // TODO check and delete invalid guilds from database after jda reconnecting
+                // TODO check and delete invalid guilds from database after jda ready
 
                 // periodic RSS update
                 scheduler.scheduleAtFixedRate(new RssUpdateRunnable(), 0,

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDA;
 
 public class SettingSingleton {
     private static SettingSingleton instance;
+    private String projectUrl = "https://github.com/jsfraz/lojza";
     private LocalDateTime started;
     private Map<String, Map<String, String>> localization;
     private Map<String, String> languagueNames;
@@ -21,15 +22,6 @@ public class SettingSingleton {
     private String mongoDatabase = "lojza";
     private int mongoTimeoutMS = 100;
     private int rssRefreshMinutes = 60;
-    private int rssFetchOlderThanMinutes = 60;
-
-    public int getRssFetchOlderThanMinutes() {
-        return this.rssFetchOlderThanMinutes;
-    }
-
-    public void setRssFetchOlderThanMinutes(int rssFetchOlderThanMinutes) {
-        this.rssFetchOlderThanMinutes = rssFetchOlderThanMinutes;
-    }
     private int rssMaxFeedCount = 5;
 
     private SettingSingleton() {
@@ -42,44 +34,36 @@ public class SettingSingleton {
         return instance;
     }
 
+    public String getProjectUrl() {
+        return this.projectUrl;
+    }
+
     public LocalDateTime getStarted() {
         return this.started;
-    }
-
-    public JDA getJdaInstance() {
-        return this.jdaInstance;
-    }
-
-    public void setJdaInstance(JDA jdaInstance) {
-        this.jdaInstance = jdaInstance;
     }
 
     public void setStarted(LocalDateTime started) {
         this.started = started;
     }
 
-    public Map<String, Map<String, String>> getLocalization() {
+    public Map<String,Map<String,String>> getLocalization() {
         return this.localization;
     }
 
-    public void setLocalization(Map<String, Map<String, String>> localization) {
+    public void setLocalization(Map<String,Map<String,String>> localization) {
         this.localization = localization;
     }
 
-    public Map<String, String> getLanguagueNames() {
+    public Map<String,String> getLanguagueNames() {
         return this.languagueNames;
     }
 
-    public void setLanguagueNames(Map<String, String> languagueNames) {
+    public void setLanguagueNames(Map<String,String> languagueNames) {
         this.languagueNames = languagueNames;
     }
 
     public Locale getDefaultLocale() {
         return this.defaultLocale;
-    }
-
-    public void setDefaultLocale(Locale defaultLocale) {
-        this.defaultLocale = defaultLocale;
     }
 
     public CommandSet[] getCommandSets() {
@@ -96,6 +80,14 @@ public class SettingSingleton {
 
     public void setDiscordToken(String discordToken) {
         this.discordToken = discordToken;
+    }
+
+    public JDA getJdaInstance() {
+        return this.jdaInstance;
+    }
+
+    public void setJdaInstance(JDA jdaInstance) {
+        this.jdaInstance = jdaInstance;
     }
 
     public String getMongoUser() {
@@ -156,9 +148,5 @@ public class SettingSingleton {
 
     public int getRssMaxFeedCount() {
         return this.rssMaxFeedCount;
-    }
-
-    public void setRssMaxFeedCount(int maxRssFeedCount) {
-        this.rssMaxFeedCount = maxRssFeedCount;
     }
 }

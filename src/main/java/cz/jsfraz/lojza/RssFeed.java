@@ -13,7 +13,8 @@ public class RssFeed {
     public RssFeed(String title, String url) {
         this.title = title;
         this.url = url;
-        this.updated = new Date();
+        this.updated = new Date(
+                System.currentTimeMillis() - SettingSingleton.GetInstance().getRssRefreshMinutes() * 60 * 1000);
     }
 
     public String getTitle() {

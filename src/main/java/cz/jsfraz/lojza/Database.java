@@ -15,7 +15,6 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -55,6 +54,18 @@ public class Database implements IDatabase {
         this.database = MongoClients.create(mongoSettings).getDatabase(settingSingleton.getMongoDatabase());
     }
 
+    // gets DiscordGuild collection
+    private MongoCollection<DiscordGuild> getDiscordGuildCollection() {
+        return database.getCollection(Introspector.decapitalize(DiscordGuild.class.getSimpleName()) + collectionSuffix,
+                DiscordGuild.class);
+    }
+
+    // returns DiscordGuild or null
+    private DiscordGuild getFirstOrDefault(long guildId) {
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        return collection.find(Filters.eq("guildId", guildId)).first();
+    }
+
     // test database connection
     @Override
     public boolean testConnection() {
@@ -69,21 +80,28 @@ public class Database implements IDatabase {
         }
     }
 
-    // gets DiscordGuild collection
-    private MongoCollection<DiscordGuild> getDiscordGuildCollection() {
-        return database.getCollection(Introspector.decapitalize(DiscordGuild.class.getSimpleName()) + collectionSuffix,
-                DiscordGuild.class);
+    // get all guild ids
+    @Override
+    public List<Long> getAllGuildIds() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAllGuildIds'");
     }
 
-    // returns DiscordGuild or null
-    private DiscordGuild getFirstOrDefault(long guildId) {
-        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
-        return collection.find(Filters.eq("guildId", guildId)).first();
+    // inserts new guild
+    @Override
+    public void insertGuild(DiscordGuild guild) {
+        getDiscordGuildCollection().insertOne(guild);
+    }
+
+    // deletes guild by id
+    @Override
+    public void deleteGuild(long guildId) {
+        getDiscordGuildCollection().deleteOne(Filters.eq("guildId", guildId));
     }
 
     // updates DiscordGuild locale
     @Override
-    public void updateGuildLocale(long guildId, Locale locale) throws MongoException {
+    public void updateGuildLocale(long guildId, Locale locale) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
