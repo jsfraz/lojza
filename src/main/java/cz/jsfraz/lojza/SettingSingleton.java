@@ -2,12 +2,13 @@ package cz.jsfraz.lojza;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Properties;
 
 import net.dv8tion.jda.api.JDA;
 
 public class SettingSingleton {
     private static SettingSingleton instance;
-    private String projectUrl = "https://github.com/jsfraz/lojza";
+    private Properties properties;      // https://stackoverflow.com/a/26573884/19371130
     private LocalDateTime started;
     private Map<String, Map<String, String>> localization;
     private Map<String, String> languagueNames;
@@ -23,6 +24,7 @@ public class SettingSingleton {
     private int mongoTimeoutMS = 100;
     private int rssRefreshMinutes = 60;
     private int rssMaxFeedCount = 5;
+    private String urlRemovedText = "[URL REMOVED]";
 
     private SettingSingleton() {
     }
@@ -34,8 +36,12 @@ public class SettingSingleton {
         return instance;
     }
 
-    public String getProjectUrl() {
-        return this.projectUrl;
+    public Properties getProperties() {
+        return this.properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 
     public LocalDateTime getStarted() {
@@ -148,5 +154,9 @@ public class SettingSingleton {
 
     public int getRssMaxFeedCount() {
         return this.rssMaxFeedCount;
+    }
+
+    public String getUrlRemovedText() {
+        return this.urlRemovedText;
     }
 }

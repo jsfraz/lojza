@@ -83,8 +83,19 @@ public class Database implements IDatabase {
     // get all guild ids
     @Override
     public List<Long> getAllGuildIds() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllGuildIds'");
+        MongoCursor<DiscordGuild> cursor = getDiscordGuildCollection().find().projection(Projections.fields(Projections.include("rssChannelId"))).iterator();
+        List<Long> list = new ArrayList<Long>();
+        while (cursor.hasNext()) {
+            list.add(cursor.next().getRssChannelId());
+        }
+        cursor.close();
+        return list;
+    }
+
+    // gets guild by id
+    @Override
+    public DiscordGuild getGuildById(long guildId) {
+        return getDiscordGuildCollection().find(Filters.eq("guildId", guildId)).first();
     }
 
     // inserts new guild
@@ -95,13 +106,13 @@ public class Database implements IDatabase {
 
     // deletes guild by id
     @Override
-    public void deleteGuild(long guildId) {
+    public void deleteGuildById(long guildId) {
         getDiscordGuildCollection().deleteOne(Filters.eq("guildId", guildId));
     }
 
     // updates DiscordGuild locale
     @Override
-    public void updateGuildLocale(long guildId, Locale locale) {
+    public void updateGuildLocaleById(long guildId, Locale locale) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -118,7 +129,7 @@ public class Database implements IDatabase {
 
     // get DiscordGuild locale
     @Override
-    public Locale getGuildLocale(long guildId) {
+    public Locale getGuildLocaleById(long guildId) {
         try {
             // gets guild locale by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
@@ -140,7 +151,7 @@ public class Database implements IDatabase {
 
     // updates DiscordGuild rss
     @Override
-    public void updateRss(long guildId, boolean value) {
+    public void updateRssById(long guildId, boolean value) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -158,7 +169,7 @@ public class Database implements IDatabase {
 
     // updates DiscordGuild rssChannel
     @Override
-    public void updateRssChannel(long guildId, long rssChannel) {
+    public void updateRssChannelById(long guildId, long rssChannel) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -176,7 +187,7 @@ public class Database implements IDatabase {
 
     // get DiscordGuild rssChannel
     @Override
-    public long getRssChannel(long guildId) {
+    public long getRssChannelById(long guildId) {
         try {
             // gets guild locale by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
@@ -198,7 +209,7 @@ public class Database implements IDatabase {
 
     // check whether RSS feed URL exists in DiscordGuild rssFeeds
     @Override
-    public boolean rssFeedExists(long guildId, String url) {
+    public boolean rssFeedExistsById(long guildId, String url) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -212,26 +223,26 @@ public class Database implements IDatabase {
 
     // updates DiscordGuild rssFeeds
     @Override
-    public void updateRssFeeds(long guildId, String title, String url) {
+    public void addGuildRssFeedById(long guildId, RssFeed rssFeed) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
         MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
         if (guild != null) {
             // update if exists
-            collection.updateOne(Filters.eq("guildId", guildId), Updates.addToSet("rssFeeds", new RssFeed(title, url)));
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.addToSet("rssFeeds", rssFeed));
         } else {
             // insert if doesn't exist
             guild = new DiscordGuild(guildId,
                     SettingSingleton.GetInstance().getDefaultLocale());
-            guild.getRssFeeds().add(new RssFeed(title, url));
+            guild.getRssFeeds().add(rssFeed);
             collection.insertOne(guild);
         }
     }
 
     // get DiscordGuild rssFeeds
     @Override
-    public List<RssFeed> getRssFeeds(long guildId) {
+    public List<RssFeed> getRssFeedsById(long guildId) {
         try {
             // gets guild locale by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
@@ -253,14 +264,14 @@ public class Database implements IDatabase {
 
     // removes item from DiscordGuild rssFeeds by index
     @Override
-    public void removeRssFeed(long guildId, int index) {
+    public void removeRssFeedById(long guildId, int index) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
         MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
         if (guild != null) {
             // index
-            String url = getRssFeeds(guildId).get(index).getUrl();
+            String url = getRssFeedsById(guildId).get(index).getUrl();
             // update if exists
             collection.updateOne(Filters.eq("guildId", guildId), Updates.pull("rssFeeds", Filters.eq("url", url)));
         }
@@ -268,7 +279,7 @@ public class Database implements IDatabase {
 
     // set DiscordGuild rssFeeds to an empty array
     @Override
-    public void clearRssFeeds(long guildId) {
+    public void clearRssFeedsById(long guildId) {
         // gets guild by id
         DiscordGuild guild = getFirstOrDefault(guildId);
 
@@ -281,7 +292,7 @@ public class Database implements IDatabase {
 
     // returns all guilds with enabled rss and non-empty feed list
     @Override
-    public List<DiscordGuild> getGuildsRss() {
+    public List<DiscordGuild> getGuildsRssBy() {
         MongoCursor<DiscordGuild> cursor = getDiscordGuildCollection()
                 .find(Filters.and(Filters.eq("rss", true),
                         Filters.not(Filters.eq("rssFeeds", new ArrayList<RssFeed>()))))
@@ -297,7 +308,7 @@ public class Database implements IDatabase {
 
     // updates rssFeeds update date
     @Override
-    public void updateRssUpdatedDate(long guildId, String url, Date updated) {
+    public void updateRssUpdatedDateById(long guildId, String url, Date updated) {
         MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
         Bson filters = Filters.and(Filters.eq("rss", true), Filters.elemMatch("rssFeeds", Filters.eq("url", url)));
         DiscordGuild guild = collection.find(filters).projection(Projections.fields(Projections.include("rssFeeds"))).first();

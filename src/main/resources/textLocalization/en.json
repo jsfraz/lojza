@@ -1,7 +1,7 @@
 {
     "devHello": "Hello, World!",
-    "textJoinGreet": "Wazzup people,",
-    "textJoin": "my name is Lojza and I'm a bit of a **Lojza**.\n\nI have some useful commands, blah, blah, blah, you know. I'm still in development, though, so take it with a grain of salt. Feel free to post on GitHub what to add or change. Let's not nitpick, there are some useful help or settings buttons at the bottom. Have fun.",
+    "textJoinGreet": "Wazzuuuup!",
+    "textJoin": "My name is Lojza and I'm a bit of a **Lojza**.\n\nI have some useful commands, blah, blah, blah, you know. I'm still in development, though, so take it with a grain of salt. Feel free to post on GitHub what to add or change. Let's not nitpick, there are some useful help or settings buttons at the bottom. Have fun.",
     "errorCommandHandle": "I guess we're having a misunderstanding, I have no idea what that command is supposed to do.",
     "textHelpTitle": "Commands",
     "textHelpDescTitle": "Command calling",
@@ -14,6 +14,7 @@
     "textStatusTitle": "Status",
     "textOsTitle": "Operating system",
     "textJavaVerTitle": "Java version",
+    "textBotVerTitle": "Bot version",
     "textUptimeTitle": "Uptime",
     "textSetupTitle": "Setup",
     "textSetupDesc": "Here you can change the settings and behavior of Lojza on your server.",

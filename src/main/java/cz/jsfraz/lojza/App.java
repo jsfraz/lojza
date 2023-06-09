@@ -2,6 +2,7 @@ package cz.jsfraz.lojza;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,14 @@ public class App {
                 SettingSingleton settings = SettingSingleton.GetInstance();
                 // start time
                 settings.setStarted(started);
+                // project properties
+                try {
+                        Properties properties = new Properties();
+                        properties.load(App.class.getClassLoader().getResourceAsStream("project.properties"));
+                        settings.setProperties(properties);
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
                 // text localization
                 try {
                         settings.setLocalization(Tools.getLocalization());
@@ -261,7 +270,8 @@ public class App {
                 // JDA instance
                 JDABuilder builder = JDABuilder.createDefault(settings.getDiscordToken());
                 JDA jda = builder.addEventListeners(new SlashCommandListener())
-                                .addEventListeners(new GuildEventListener()).build();
+                                .addEventListeners(new GuildEventListener())
+                                .addEventListeners(new SessionEventListener()).build();
 
                 // updating bot commands (might take a few minutes to be applied)
                 CommandListUpdateAction commands = jda.updateCommands();
@@ -281,9 +291,6 @@ public class App {
                 } catch (InterruptedException e) {
                         e.printStackTrace();
                 }
-
-                // TODO check and delete invalid guilds from database after jda reconnecting
-                // TODO check and delete invalid guilds from database after jda ready
 
                 // periodic RSS update
                 scheduler.scheduleAtFixedRate(new RssUpdateRunnable(), 0,

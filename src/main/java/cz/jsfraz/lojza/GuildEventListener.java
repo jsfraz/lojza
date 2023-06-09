@@ -27,13 +27,10 @@ public class GuildEventListener extends ListenerAdapter {
 
     @Override
     public void onGuildJoin(GuildJoinEvent event) {
-        // insert guild to database
-        db.insertGuild(new DiscordGuild(event.getGuild().getIdLong(), settings.getDefaultLocale()));
-
         // send message to first channel
         for (TextChannel channel : event.getGuild().getTextChannels()) {
             if (channel.canTalk()) {
-                Locale locale = db.getGuildLocale(event.getGuild().getIdLong());
+                Locale locale = db.getGuildLocaleById(event.getGuild().getIdLong());
 
                 // embed
                 EmbedBuilder eb = new EmbedBuilder();
@@ -45,7 +42,7 @@ public class GuildEventListener extends ListenerAdapter {
                     {
                         add(Button.primary("help", lm.getText(locale, "textHelpTitle")));
                         add(Button.primary("setup", lm.getText(locale, "textSetupTitle")));
-                        add(Button.link(settings.getProjectUrl(), lm.getText(locale, "GitHub")));
+                        add(Button.link(settings.getProperties().getProperty("url"), lm.getText(locale, "GitHub")));
                     }
                 };
 
@@ -59,7 +56,7 @@ public class GuildEventListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String[] ids = event.getComponentId().split(":");
-        Locale locale = db.getGuildLocale(event.getGuild().getIdLong());
+        Locale locale = db.getGuildLocaleById(event.getGuild().getIdLong());
 
         switch (ids[0]) {
             case "help": // help button
@@ -84,7 +81,7 @@ public class GuildEventListener extends ListenerAdapter {
     @Override
     public void onGuildLeave(GuildLeaveEvent event) {
         // delete guild from database
-        db.deleteGuild(event.getGuild().getIdLong());
+        db.updateRssById(event.getGuild().getIdLong(), false);
     }
 
 }

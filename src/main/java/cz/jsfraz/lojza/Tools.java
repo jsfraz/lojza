@@ -10,16 +10,25 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.jsoup.Jsoup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
@@ -94,7 +103,7 @@ public class Tools {
     }
 
     // gets rss feed
-    public static SyndFeed getRssFeed(String url) throws Exception {
+    public static SyndFeed getRssFeed(String url) throws IllegalArgumentException, FeedException, IOException {
         URL feedSource = new URL(url);
         SyndFeedInput input = new SyndFeedInput();
         return input.build(new XmlReader(feedSource.openStream()));
@@ -172,7 +181,8 @@ public class Tools {
     }
 
     // setup select menu
-    public static StringSelectMenu getSetupSelectMenu(ILocalizationManager lm, Locale locale, String userId, SetupOption option) {
+    public static StringSelectMenu getSetupSelectMenu(ILocalizationManager lm, Locale locale, String userId,
+            SetupOption option) {
         // https://stackoverflow.com/questions/74833816/how-to-send-dropdown-menu-in-java-discord-api
         StringSelectMenu.Builder selectMenuBuilder = StringSelectMenu.create(userId + ":setupMenu");
         for (SetupOption o : EnumSet.allOf(SetupOption.class)) {
@@ -185,5 +195,119 @@ public class Tools {
             }
         }
         return selectMenuBuilder.build();
+    }
+
+    // // sends announcement messages based on guild's rss feed list
+    public static void sendGuildRssAnnoucement(ILocalizationManager lm, IDatabase db, SettingSingleton settings,
+            DiscordGuild guild) {
+        ExecutorService execRss = Executors.newCachedThreadPool();
+        List<Callable<Boolean>> rssTasks = new ArrayList<Callable<Boolean>>();
+
+        for (RssFeed feed : guild.getRssFeeds()) {
+            Callable<Boolean> rssCallable = new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    try {
+                        // set refresh date an hour ago
+                        Date now = new Date();
+                        Date lastRefresh = new Date(
+                                System.currentTimeMillis()
+                                        - settings.getRssRefreshMinutes() * 60 * 1000);
+                        // don't refresh if last refresh was less than hour ago (restarts and similiar
+                        // situations)
+                        if (feed.getUpdated().after(lastRefresh)) {
+                            return true;
+                        }
+
+                        sendRssAnnoucement(lm, db, settings, guild.getLocale(), guild.getGuildId(),
+                                guild.getRssChannelId(), feed, now, lastRefresh);
+                    } catch (Exception e) {
+                        // error
+                        e.printStackTrace();
+                        settings.getJdaInstance().getTextChannelById(guild.getRssChannelId())
+                                .sendMessage(lm.getText(guild.getLocale(), "textRssError")).queue();
+                    }
+
+                    return true;
+                }
+            };
+            rssTasks.add(0, rssCallable);
+        }
+        try {
+            execRss.invokeAll(rssTasks);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // sends announcement messages based on single rss feed and guild
+    public static void sendRssAnnoucement(ILocalizationManager lm, IDatabase db, SettingSingleton settings,
+            Locale locale, long guildId, long guildRssChannelId,
+            RssFeed feed, Date now, Date lastRefresh) {
+        try {
+            SyndFeed f = getRssFeed(feed.getUrl());
+
+            // get feed released from hour ago to now, sort from oldest
+            List<SyndEntry> entries = f.getEntries().stream()
+                    .filter(x -> x.getPublishedDate().after(lastRefresh))
+                    .sorted(new Comparator<SyndEntry>() {
+                        public int compare(SyndEntry o1, SyndEntry o2) {
+                            return o1.getPublishedDate().compareTo(o2.getPublishedDate());
+                        }
+                    }).toList();
+
+            // update updated date
+            db.updateRssUpdatedDateById(guildId, feed.getUrl(), now);
+
+            for (SyndEntry entry : entries) {
+                try {
+                    // create embed
+                    EmbedBuilder eb = new EmbedBuilder();
+                    eb.setTitle(entry.getTitle(), entry.getLink());
+                    eb.setColor(Color.yellow);
+                    eb.addField(f.getTitle(), formatEmbedText(entry.getDescription().getValue()), false);
+                    // set feed logo as thumbnail
+                    if (f.getImage() != null) {
+                        eb.setThumbnail(f.getImage().getUrl());
+                    }
+                    // set feed entry image as embed image
+                    if (!entry.getEnclosures().isEmpty()) {
+                        eb.setImage(entry.getEnclosures().get(0).getUrl());
+                    }
+                    eb.setFooter(entry.getPublishedDate().toString());
+
+                    // send annoucement
+                    settings.getJdaInstance().getTextChannelById(guildRssChannelId)
+                            .sendMessageEmbeds(eb.build()).queue();
+
+                } catch (Exception e) {
+                    // error
+                    e.printStackTrace();
+                    settings.getJdaInstance().getTextChannelById(guildRssChannelId)
+                            .sendMessage(lm.getText(locale, "textRssError"))
+                            .queue();
+                }
+            }
+        } catch (IllegalArgumentException | FeedException | IOException e) {
+            // error
+            e.printStackTrace();
+            settings.getJdaInstance().getTextChannelById(guildRssChannelId)
+                    .sendMessage(lm.getText(locale, "textRssError"))
+                    .queue();
+        }
+    }
+
+    // formats embed text (max length, html tags...)
+    public static String formatEmbedText(String text) {
+        // removes html tags
+        text = Jsoup.parse(text).text();
+        // shortens text if neccessary
+        if (text.length() > MessageEmbed.TITLE_MAX_LENGTH) {
+            text = text.substring(0, MessageEmbed.TITLE_MAX_LENGTH - 3);
+            text += "...";
+        }
+
+        return text;
     }
 }

@@ -8,31 +8,33 @@ public interface IDatabase {
 
     public List<Long> getAllGuildIds();
 
+    public DiscordGuild getGuildById(long guildId);
+
     public void insertGuild(DiscordGuild guild);
 
-    public void deleteGuild(long guildId);
+    public void deleteGuildById(long guildId);
 
-    public void updateGuildLocale(long guildId, Locale locale) ;
+    public void updateGuildLocaleById(long guildId, Locale locale) ;
 
-    public Locale getGuildLocale(long guildId);
+    public Locale getGuildLocaleById(long guildId);
 
-    public void updateRss(long guildId, boolean value);
+    public void updateRssById(long guildId, boolean value);
 
-    public void updateRssChannel(long guildId, long rssChannel);
+    public void updateRssChannelById(long guildId, long rssChannel);
 
-    public long getRssChannel(long guildId);
+    public long getRssChannelById(long guildId);
 
-    public boolean rssFeedExists(long guildId, String url);
+    public boolean rssFeedExistsById(long guildId, String url);
 
-    public void updateRssFeeds(long guildId, String title, String url);
+    public void addGuildRssFeedById(long guildId, RssFeed rssFeed);
 
-    public List<RssFeed> getRssFeeds(long guildId);
+    public List<RssFeed> getRssFeedsById(long guildId);
 
-    public void removeRssFeed(long guildId, int index);
+    public void removeRssFeedById(long guildId, int index);
 
-    public void clearRssFeeds(long guildId);
+    public void clearRssFeedsById(long guildId);
 
-    public List<DiscordGuild> getGuildsRss();
+    public List<DiscordGuild> getGuildsRssBy();
 
-    public void updateRssUpdatedDate(long guildId, String url, Date updated);
+    public void updateRssUpdatedDateById(long guildId, String url, Date updated);
 }

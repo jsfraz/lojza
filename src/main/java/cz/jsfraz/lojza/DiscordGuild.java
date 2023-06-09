@@ -12,8 +12,6 @@ public class DiscordGuild {
     private long rssChannelId;
     private List<RssFeed> rssFeeds;
 
-    private static final long defaultRssChannelId = 0;
-
     public DiscordGuild() {
     }
 
@@ -21,12 +19,8 @@ public class DiscordGuild {
         this.guildId = guildId;
         this.locale = locale;
         this.rss = true;
-        this.rssChannelId = defaultRssChannelId;
+        this.rssChannelId = 0;
         this.rssFeeds = new ArrayList<RssFeed>();
-    }
-
-    public static long getDefaultRssChannelId() {
-        return defaultRssChannelId;
     }
 
     public long getGuildId() {
@@ -43,10 +37,6 @@ public class DiscordGuild {
 
     public void setLocale(Locale locale) {
         this.locale = locale;
-    }
-
-    public boolean isRss() {
-        return this.rss;
     }
 
     public boolean getRss() {

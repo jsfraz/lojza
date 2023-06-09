@@ -6,6 +6,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +44,7 @@ public class SlashCommandListener extends ListenerAdapter {
         // server locale
         Locale locale = settings.getDefaultLocale();
         if (event.isFromGuild()) {
-            locale = db.getGuildLocale(event.getGuild().getIdLong());
+            locale = db.getGuildLocaleById(event.getGuild().getIdLong());
         }
 
         switch (event.getFullCommandName()) {
@@ -158,7 +159,8 @@ public class SlashCommandListener extends ListenerAdapter {
     // setup command
     private void setupCommand(SlashCommandInteractionEvent event, Locale locale) {
         String userId = event.getUser().getId();
-        event.replyEmbeds(Tools.getSetupEmbed(lm, locale)).addActionRow(Tools.getSetupSelectMenu(lm, locale, userId, null))
+        event.replyEmbeds(Tools.getSetupEmbed(lm, locale))
+                .addActionRow(Tools.getSetupSelectMenu(lm, locale, userId, null))
                 .setEphemeral(true).queue();
     }
 
@@ -257,7 +259,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
                     // rss
                     case "rss":
-                        db.updateRss(event.getGuild().getIdLong(), true);
+                        db.updateRssById(event.getGuild().getIdLong(), true);
                         break;
                 }
                 break;
@@ -268,7 +270,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
                     // rss
                     case "rss":
-                        db.updateRss(event.getGuild().getIdLong(), false);
+                        db.updateRssById(event.getGuild().getIdLong(), false);
                         break;
                 }
                 break;
@@ -280,9 +282,9 @@ public class SlashCommandListener extends ListenerAdapter {
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         // server locale
         Locale locale = settings.getDefaultLocale();
-        
+
         if (event.isFromGuild()) {
-            locale = db.getGuildLocale(event.getGuild().getIdLong());
+            locale = db.getGuildLocaleById(event.getGuild().getIdLong());
         }
 
         String[] ids = event.getComponentId().split(":");
@@ -301,7 +303,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
             case "localeMenu": // guild languague
                 try {
-                    db.updateGuildLocale(event.getGuild().getIdLong(), Locale.valueOf(event.getValues().get(0)));
+                    db.updateGuildLocaleById(event.getGuild().getIdLong(), Locale.valueOf(event.getValues().get(0)));
                 } catch (MongoException e) {
                     event.getUser().openPrivateChannel()
                             .flatMap(x -> x
@@ -338,12 +340,15 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // rss channel command
     private void rssChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
-        long guildRssChannel = db.getRssChannel(event.getGuild().getIdLong());
+        long guildRssChannel = db.getRssChannelById(event.getGuild().getIdLong());
 
         if (guildRssChannel != event.getGuildChannel().getIdLong()) {
-            db.updateRssChannel(event.getGuild().getIdLong(), event.getGuildChannel().getIdLong());
-            // TODO fetch new posts
+            // set rss channel and reply
+            db.updateRssChannelById(event.getGuild().getIdLong(), event.getGuildChannel().getIdLong());
             event.reply(lm.getText(locale, "textRssChannelSet")).setEphemeral(true).queue();
+
+            // fetch news from guild rss feeeds
+            Tools.sendGuildRssAnnoucement(lm, db, settings, db.getGuildById(event.getGuild().getIdLong()));
         } else {
             event.reply(lm.getText(locale, "textRssChannelAlreadySet")).setEphemeral(true).queue();
         }
@@ -351,54 +356,70 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // rss add url command
     private void rssAddCommand(SlashCommandInteractionEvent event, Locale locale) {
-        // url option
-        OptionMapping urlOption = event.getOption("url");
-        // Discord guild rss feed count
-        int rssCount = db.getRssFeeds(event.getGuild().getIdLong()).size();
+        long channelId = db.getRssChannelById(event.getGuild().getIdLong());
 
-        if (rssCount < settings.getRssMaxFeedCount()) {
-            try {
-                // check url
-                new URL(urlOption.getAsString());
+        // check if channel is set
+        if (event.getGuild().getTextChannelById(channelId) != null) {
+            // url option
+            OptionMapping urlOption = event.getOption("url");
+            // Discord guild rss feed count
+            int rssCount = db.getRssFeedsById(event.getGuild().getIdLong()).size();
 
-                // check if url is already in list
-                boolean exists = db.rssFeedExists(event.getGuild().getIdLong(), urlOption.getAsString());
+            if (rssCount < settings.getRssMaxFeedCount()) {
+                try {
+                    // check url
+                    new URL(urlOption.getAsString());
 
-                if (exists) {
-                    event.reply(lm.getText(locale, "textRssAlreadyExists")).setEphemeral(true).queue();
-                } else {
-                    // test RSS url
-                    try {
-                        SyndFeed feed = Tools.getRssFeed(urlOption.getAsString());
+                    // check if url is already in list
+                    boolean exists = db.rssFeedExistsById(event.getGuild().getIdLong(), urlOption.getAsString());
 
-                        db.updateRssFeeds(event.getGuild().getIdLong(), feed.getTitle(), urlOption.getAsString());
-                        event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+                    if (exists) {
+                        event.reply(lm.getText(locale, "textRssAlreadyExists")).setEphemeral(true).queue();
+                    } else {
+                        // test RSS url
+                        try {
+                            SyndFeed feed = Tools.getRssFeed(urlOption.getAsString());
 
-                        // TODO fetch new posts from this RSS feed
-                    } catch (Exception e) {
-                        event.reply(lm.getText(locale, "textInvalidRssSource")).setEphemeral(true).queue();
+                            // add rss feed and reply
+                            RssFeed newFeed = new RssFeed(feed.getTitle(), urlOption.getAsString());
+                            db.addGuildRssFeedById(event.getGuild().getIdLong(), newFeed);
+                            event.reply(lm.getText(locale, "textRssAdded")).setEphemeral(true).queue();
+
+                            // set refresh date an hour ago
+                            Date now = new Date();
+                            Date lastRefresh = new Date(
+                                    System.currentTimeMillis()
+                                            - settings.getRssRefreshMinutes() * 60 * 1000);
+                            // fetch news from this feed
+                            Tools.sendRssAnnoucement(lm, db, settings, locale, event.getGuild().getIdLong(), channelId,
+                                    newFeed, now, lastRefresh);
+                        } catch (Exception e) {
+                            event.reply(lm.getText(locale, "textInvalidRssSource")).setEphemeral(true).queue();
+                        }
                     }
+                } catch (MalformedURLException e) {
+                    event.reply(lm.getText(locale, "textInvalidRssUrl")).setEphemeral(true).queue();
                 }
-            } catch (MalformedURLException e) {
-                event.reply(lm.getText(locale, "textInvalidRssUrl")).setEphemeral(true).queue();
+            } else {
+                event.reply(String.format(lm.getText(locale, "textRssFeedLimit"), settings.getRssMaxFeedCount()))
+                        .setEphemeral(true).queue();
             }
         } else {
-            event.reply(String.format(lm.getText(locale, "textRssFeedLimit"), settings.getRssMaxFeedCount()))
-                    .setEphemeral(true).queue();
+            event.reply(lm.getText(locale, "textRssChannelNotSet")).setEphemeral(true).queue();
         }
     }
 
     // rss list command
     private void rssListCommand(SlashCommandInteractionEvent event, Locale locale) {
-        long channelId = db.getRssChannel(event.getGuild().getIdLong());
+        long channelId = db.getRssChannelById(event.getGuild().getIdLong());
 
         // check if channel is set
-        if (channelId != DiscordGuild.getDefaultRssChannelId()) {
+        if (event.getGuild().getTextChannelById(channelId) != null) {
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle(lm.getText(locale, "textRssConfig"));
             eb.setColor(Color.yellow);
             eb.addField(lm.getText(locale, "textRssChannel"), String.format("<#%s>", Long.toString(channelId)), false);
-            List<RssFeed> guildUrls = db.getRssFeeds(event.getGuild().getIdLong());
+            List<RssFeed> guildUrls = db.getRssFeedsById(event.getGuild().getIdLong());
             String urls = "";
             if (!guildUrls.isEmpty()) {
                 for (int i = 0; i < guildUrls.size(); i++) {
@@ -425,11 +446,11 @@ public class SlashCommandListener extends ListenerAdapter {
         // index option
         OptionMapping indexOption = event.getOption("index");
         // Discord guild rss feed count
-        int rssCount = db.getRssFeeds(event.getGuild().getIdLong()).size();
+        int rssCount = db.getRssFeedsById(event.getGuild().getIdLong()).size();
 
         // check index range
         if (indexOption.getAsInt() > 0 && indexOption.getAsInt() <= rssCount) {
-            db.removeRssFeed(event.getGuild().getIdLong(), indexOption.getAsInt() - 1);
+            db.removeRssFeedById(event.getGuild().getIdLong(), indexOption.getAsInt() - 1);
             event.reply(lm.getText(locale, "textRssRemoved")).setEphemeral(true).queue();
         } else {
             event.reply(lm.getText(locale, "textRssInvalidRange")).setEphemeral(true).queue();
@@ -438,7 +459,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // rss clear command
     private void rssClearCommand(SlashCommandInteractionEvent event, Locale locale) {
-        db.clearRssFeeds(event.getGuild().getIdLong());
+        db.clearRssFeedsById(event.getGuild().getIdLong());
         event.reply(lm.getText(locale, "textRssCleared")).setEphemeral(true).queue();
     }
 
@@ -501,6 +522,8 @@ public class SlashCommandListener extends ListenerAdapter {
         String osArch = System.getProperty("os.arch");
         // java version
         String javaVersion = System.getProperty("java.version");
+        // bot version
+        String botVersion = settings.getProperties().getProperty("version");
         // uptime
         LocalDateTime started = SettingSingleton.GetInstance().getStarted();
         Duration uptime = Duration.between(started, LocalDateTime.now());
@@ -515,6 +538,7 @@ public class SlashCommandListener extends ListenerAdapter {
         eb.setColor(Color.yellow);
         eb.addField(lm.getText(locale, "textOsTitle"), osName + " " + osVersion + " (" + osArch + ")", false);
         eb.addField(lm.getText(locale, "textJavaVerTitle"), javaVersion, false);
+        eb.addField(lm.getText(locale, "textBotVerTitle"), botVersion, false);
         eb.addField(lm.getText(locale, "textUptimeTitle"), String.format("%02d:%02d:%02d", HH, MM, SS), false);
 
         // reply with embed

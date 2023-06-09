@@ -1,7 +1,7 @@
 {
     "devHello": "Ahoj, světe!",
-    "textJoinGreet": "Čau lidi,",
-    "textJoin": "jsem se Lojza a jsem tak trochu **Lojza**.\n\nUmím nějaký užitečný příkazy, bla, bla, bla, však to znáš. Zatím jsem ale ve vývoji, tak to ber s rezervou. Klidně napiš na GitHub co přidat nebo změnit. Nebudem to hrotit, dole jsou nějaký užitečný tlačítka pro nápovědu nebo nastavení. Přeju příjemnou zábavu.",
+    "textJoinGreet": "Co jeeeeee!",
+    "textJoin": "Jmenuju se Lojza a jsem tak trochu **Lojza**.\n\nUmím nějaký užitečný příkazy, bla, bla, bla, však to znáš. Zatím jsem ale ve vývoji, tak to ber s rezervou. Klidně napiš na GitHub co přidat nebo změnit. Nebudem to hrotit, dole jsou nějaký užitečný tlačítka pro nápovědu nebo nastavení. Přeju příjemnou zábavu.",
     "errorCommandHandle": "Asi jsme si nějak neporozumněli, nemám páru co by měl ten příkaz dělat.",
     "textHelpTitle": "Příkazy",
     "textHelpDescTitle": "Volání příkazů",
@@ -14,6 +14,7 @@
     "textStatusTitle": "Stav",
     "textOsTitle": "Operační systém",
     "textJavaVerTitle": "Verze Javy",
+    "textBotVerTitle": "Verze bota",
     "textUptimeTitle": "Spuštěno",
     "textSetupTitle": "Nastavení",
     "textSetupDesc": "Zde můžete změnit nastavení a chování Lojzy na vašem serveru.",
