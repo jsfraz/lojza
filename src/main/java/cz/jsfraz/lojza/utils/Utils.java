@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.utils;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -32,6 +32,10 @@ import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
+import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.database.models.DiscordGuild;
+import cz.jsfraz.lojza.database.models.Locale;
+import cz.jsfraz.lojza.database.models.RssFeed;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
@@ -42,7 +46,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
-public class Tools {
+public class Utils {
     // gets localization from resource folder
     public static Map<String, Map<String, String>> getLocalization() throws IOException {
         Map<String, Map<String, String>> localization = new HashMap<String, Map<String, String>>();

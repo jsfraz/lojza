@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.database;
 
 import java.beans.Introspector;
 import java.util.ArrayList;
@@ -22,6 +22,11 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
+
+import cz.jsfraz.lojza.database.models.DiscordGuild;
+import cz.jsfraz.lojza.database.models.Locale;
+import cz.jsfraz.lojza.database.models.RssFeed;
+import cz.jsfraz.lojza.utils.SettingSingleton;
 
 // https://www.baeldung.com/java-mongodb
 

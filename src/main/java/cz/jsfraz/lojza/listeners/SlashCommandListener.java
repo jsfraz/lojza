@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.listeners;
 
 import java.awt.Color;
 import java.net.MalformedURLException;
@@ -14,6 +14,15 @@ import java.util.concurrent.TimeUnit;
 import com.mongodb.MongoException;
 import com.rometools.rome.feed.synd.SyndFeed;
 
+import cz.jsfraz.lojza.database.Database;
+import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.database.models.Locale;
+import cz.jsfraz.lojza.database.models.RssFeed;
+import cz.jsfraz.lojza.utils.ILocalizationManager;
+import cz.jsfraz.lojza.utils.LocalizationManager;
+import cz.jsfraz.lojza.utils.SettingSingleton;
+import cz.jsfraz.lojza.utils.SetupOption;
+import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -118,7 +127,7 @@ public class SlashCommandListener extends ListenerAdapter {
     // help
     private void helpCommand(SlashCommandInteractionEvent event, Locale locale) {
         // reply with embed
-        event.replyEmbeds(Tools.getHelpEmbed(lm, locale)).queue();
+        event.replyEmbeds(Utils.getHelpEmbed(lm, locale)).queue();
     }
 
     /* Admin commands */
@@ -159,8 +168,8 @@ public class SlashCommandListener extends ListenerAdapter {
     // setup command
     private void setupCommand(SlashCommandInteractionEvent event, Locale locale) {
         String userId = event.getUser().getId();
-        event.replyEmbeds(Tools.getSetupEmbed(lm, locale))
-                .addActionRow(Tools.getSetupSelectMenu(lm, locale, userId, null))
+        event.replyEmbeds(Utils.getSetupEmbed(lm, locale))
+                .addActionRow(Utils.getSetupSelectMenu(lm, locale, userId, null))
                 .setEphemeral(true).queue();
     }
 
@@ -193,7 +202,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // componenets to send
         List<LayoutComponent> layoutComponents = new ArrayList<LayoutComponent>();
-        layoutComponents.add(ActionRow.of(Tools.getSetupSelectMenu(lm, locale, userId, option)));
+        layoutComponents.add(ActionRow.of(Utils.getSetupSelectMenu(lm, locale, userId, option)));
         if (!components.isEmpty()) {
             layoutComponents.add(ActionRow.of(components));
         }
@@ -348,7 +357,7 @@ public class SlashCommandListener extends ListenerAdapter {
             event.reply(lm.getText(locale, "textRssChannelSet")).setEphemeral(true).queue();
 
             // fetch news from guild rss feeeds
-            Tools.sendGuildRssAnnoucement(lm, db, settings, db.getGuildById(event.getGuild().getIdLong()));
+            Utils.sendGuildRssAnnoucement(lm, db, settings, db.getGuildById(event.getGuild().getIdLong()));
         } else {
             event.reply(lm.getText(locale, "textRssChannelAlreadySet")).setEphemeral(true).queue();
         }
@@ -378,7 +387,7 @@ public class SlashCommandListener extends ListenerAdapter {
                     } else {
                         // test RSS url
                         try {
-                            SyndFeed feed = Tools.getRssFeed(urlOption.getAsString());
+                            SyndFeed feed = Utils.getRssFeed(urlOption.getAsString());
 
                             // add rss feed and reply
                             RssFeed newFeed = new RssFeed(feed.getTitle(), urlOption.getAsString());
@@ -391,7 +400,7 @@ public class SlashCommandListener extends ListenerAdapter {
                                     System.currentTimeMillis()
                                             - settings.getRssRefreshMinutes() * 60 * 1000);
                             // fetch news from this feed
-                            Tools.sendRssAnnoucement(lm, db, settings, locale, event.getGuild().getIdLong(), channelId,
+                            Utils.sendRssAnnoucement(lm, db, settings, locale, event.getGuild().getIdLong(), channelId,
                                     newFeed, now, lastRefresh);
                         } catch (Exception e) {
                             event.reply(lm.getText(locale, "textInvalidRssSource")).setEphemeral(true).queue();
@@ -501,7 +510,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
         boolean ok = false;
         try {
-            Tools.getRssFeed(urlOption.getAsString());
+            Utils.getRssFeed(urlOption.getAsString());
             ok = true;
         } catch (Exception e) {
             e.printStackTrace();

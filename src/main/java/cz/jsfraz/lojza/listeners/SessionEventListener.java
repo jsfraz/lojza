@@ -1,7 +1,10 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.listeners;
 
 import java.util.List;
 
+import cz.jsfraz.lojza.database.Database;
+import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.utils.SettingSingleton;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

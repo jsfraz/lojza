@@ -1,9 +1,10 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.utils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Properties;
 
+import cz.jsfraz.lojza.database.models.Locale;
 import net.dv8tion.jda.api.JDA;
 
 public class SettingSingleton {

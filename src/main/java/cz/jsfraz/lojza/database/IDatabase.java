@@ -1,7 +1,11 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.database;
 
 import java.util.Date;
 import java.util.List;
+
+import cz.jsfraz.lojza.database.models.DiscordGuild;
+import cz.jsfraz.lojza.database.models.Locale;
+import cz.jsfraz.lojza.database.models.RssFeed;
 
 public interface IDatabase {
     public boolean testConnection();

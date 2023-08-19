@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.utils;
 
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 

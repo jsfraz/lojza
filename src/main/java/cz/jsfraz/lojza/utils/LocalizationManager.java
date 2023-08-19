@@ -1,6 +1,8 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.utils;
 
 import java.util.Map;
+
+import cz.jsfraz.lojza.database.models.Locale;
 
 public class LocalizationManager implements ILocalizationManager {
     private Map<String, Map<String, String>> localization;

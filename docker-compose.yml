@@ -1,29 +1,48 @@
 version: "3.3"
+
+# Define the services that will run as Docker containers.
 services:
+  # Define the MongoDB service.
   lojza-mongo:
     container_name: lojza-mongo
     restart: always
     environment:
+      # Set MongoDB's root username for initialization.
       - MONGO_INITDB_ROOT_USERNAME=lojza
+      # Set MongoDB's root password for initialization.
       - MONGO_INITDB_ROOT_PASSWORD=12345678
     volumes:
+      # Mount the 'mongo-volume' volume to store MongoDB data.
       - "mongo-volume:/data/db"
     networks:
+      # Connect the service to the 'lojza' network.
       - lojza
     image: mongo:latest
+
+  # Define the main 'lojza' application service.
   lojza:
     container_name: lojza
     restart: always
     environment:
+      # Set the Discord token for the 'lojza' application.
       - DISCORD_TOKEN=your_epic_token
+      # Set the MongoDB password for the application to access the database.
       - MONGO_PASSWORD=12345678
+      # Set the hostname of the MongoDB server (service) to connect to.
       - MONGO_SERVER=lojza-mongo
     networks:
+      # Connect the service to the 'lojza' network.
       - lojza
     image: jsfraz/lojza:1.0.0
+
+# Define named volumes for persisting data across container restarts.
 volumes:
+  # Define the 'mongo-volume' volume.
   mongo-volume:
     external: false
+
+# Define user-defined networks for connecting services.
 networks:
+  # Define the 'lojza' network.
   lojza:
     name: lojza

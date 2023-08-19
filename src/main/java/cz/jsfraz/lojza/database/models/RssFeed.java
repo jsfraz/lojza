@@ -1,6 +1,8 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.database.models;
 
 import java.util.Date;
+
+import cz.jsfraz.lojza.utils.SettingSingleton;
 
 public class RssFeed {
     private String title;

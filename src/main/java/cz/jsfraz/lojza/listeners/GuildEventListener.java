@@ -1,9 +1,16 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.listeners;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.jsfraz.lojza.database.Database;
+import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.database.models.Locale;
+import cz.jsfraz.lojza.utils.ILocalizationManager;
+import cz.jsfraz.lojza.utils.LocalizationManager;
+import cz.jsfraz.lojza.utils.SettingSingleton;
+import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -61,15 +68,15 @@ public class GuildEventListener extends ListenerAdapter {
         switch (ids[0]) {
             case "help": // help button
                 // reply with embed
-                event.replyEmbeds(Tools.getHelpEmbed(lm, locale)).queue();
+                event.replyEmbeds(Utils.getHelpEmbed(lm, locale)).queue();
                 break;
 
             case "setup": // setup button
                 // check if user has permissions
                 if (event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
                     String userId = event.getUser().getId();
-                    event.replyEmbeds(Tools.getSetupEmbed(lm, locale))
-                            .addActionRow(Tools.getSetupSelectMenu(lm, locale, userId, null))
+                    event.replyEmbeds(Utils.getSetupEmbed(lm, locale))
+                            .addActionRow(Utils.getSetupSelectMenu(lm, locale, userId, null))
                             .setEphemeral(true).queue();
                 } else {
                     event.reply(lm.getText(locale, "textNotAdmin")).setEphemeral(true).queue();

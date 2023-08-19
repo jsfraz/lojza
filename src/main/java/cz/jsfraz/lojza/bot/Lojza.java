@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.bot;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -7,6 +7,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import cz.jsfraz.lojza.bot.thread.RssUpdateRunnable;
+import cz.jsfraz.lojza.listeners.GuildEventListener;
+import cz.jsfraz.lojza.listeners.SessionEventListener;
+import cz.jsfraz.lojza.listeners.SlashCommandListener;
+import cz.jsfraz.lojza.utils.AppMode;
+import cz.jsfraz.lojza.utils.CommandCategory;
+import cz.jsfraz.lojza.utils.CommandSet;
+import cz.jsfraz.lojza.utils.SettingSingleton;
+import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
@@ -24,7 +33,7 @@ import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 // https://github.com/DV8FromTheWorld/JDA/tree/master/src/examples/java
 
-public class App {
+public class Lojza {
         private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         public static void main(String[] args) {
@@ -37,16 +46,16 @@ public class App {
                 // project properties
                 try {
                         Properties properties = new Properties();
-                        properties.load(App.class.getClassLoader().getResourceAsStream("project.properties"));
+                        properties.load(Lojza.class.getClassLoader().getResourceAsStream("project.properties"));
                         settings.setProperties(properties);
 
                         String mode = (properties.getProperty("mode") != null) ? properties.getProperty("mode")
                                         : "debug";
                         if (mode.equals("production")) {
-                                System.out.println("Production mode enabled");
+                                System.out.println("Production mode enabled.");
                                 settings.setAppMode(AppMode.production);
                         } else {
-                                System.out.println("Debug mode enabled");
+                                System.out.println("Debug mode enabled.");
                                 settings.setAppMode(AppMode.debug);
                         }
                 } catch (IOException e) {
@@ -54,8 +63,8 @@ public class App {
                 }
                 // text localization
                 try {
-                        settings.setLocalization(Tools.getLocalization());
-                        settings.setLanguagueNames(Tools.getLanguagueNames());
+                        settings.setLocalization(Utils.getLocalization());
+                        settings.setLanguagueNames(Utils.getLanguagueNames());
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
@@ -220,7 +229,7 @@ public class App {
                                                                                                                                 "Locale for testing.")
                                                                                                                                 // locale
                                                                                                                                 // chocies
-                                                                                                                                .addChoices(Tools
+                                                                                                                                .addChoices(Utils
                                                                                                                                                 .getChoicesFromKeys(
                                                                                                                                                                 settings.getLocalization()
                                                                                                                                                                                 .keySet()))
@@ -233,7 +242,7 @@ public class App {
                                                                                                                                 "Name of string.")
                                                                                                                                 // name
                                                                                                                                 // choices
-                                                                                                                                .addChoices(Tools
+                                                                                                                                .addChoices(Utils
                                                                                                                                                 .getChoicesFromKeys(
                                                                                                                                                                 settings.getLocalization()
                                                                                                                                                                                 .get(settings.getLocalization()

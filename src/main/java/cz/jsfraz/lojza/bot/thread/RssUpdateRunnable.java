@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.bot.thread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import cz.jsfraz.lojza.database.Database;
+import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.database.models.DiscordGuild;
+import cz.jsfraz.lojza.utils.ILocalizationManager;
+import cz.jsfraz.lojza.utils.LocalizationManager;
+import cz.jsfraz.lojza.utils.SettingSingleton;
+import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class RssUpdateRunnable implements Runnable {
@@ -33,7 +40,7 @@ public class RssUpdateRunnable implements Runnable {
 
                     @Override
                     public Boolean call() throws Exception {
-                        Tools.sendGuildRssAnnoucement(lm, db, settings, guild);
+                        Utils.sendGuildRssAnnoucement(lm, db, settings, guild);
 
                         return true;
                     }

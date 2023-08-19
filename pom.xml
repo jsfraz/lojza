@@ -100,7 +100,7 @@
             <archive>
               <manifest>
                 <!-- Specify main class for the JAR's manifest -->
-                <mainClass>cz.jsfraz.lojza.App</mainClass>
+                <mainClass>cz.jsfraz.lojza.bot.Lojza</mainClass>
                 <!-- Configure classpath in the manifest -->
                 <addClasspath>true</addClasspath>
                 <classpathPrefix>lib/</classpathPrefix>
@@ -117,7 +117,7 @@
             <archive>
               <manifest>
                 <!-- Specify main class for the executable JAR's manifest -->
-                <mainClass>cz.jsfraz.lojza.App</mainClass>
+                <mainClass>cz.jsfraz.lojza.bot.Lojza</mainClass>
               </manifest>
             </archive>
             <!-- Use a predefined descriptor to include dependencies in the JAR -->

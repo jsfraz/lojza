@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.utils;
 
 public enum AppMode {
     debug,

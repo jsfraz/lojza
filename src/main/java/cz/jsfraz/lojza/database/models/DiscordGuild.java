@@ -1,4 +1,4 @@
-package cz.jsfraz.lojza;
+package cz.jsfraz.lojza.database.models;
 
 import java.util.ArrayList;
 import java.util.List;
