@@ -39,6 +39,16 @@ public class App {
                         Properties properties = new Properties();
                         properties.load(App.class.getClassLoader().getResourceAsStream("project.properties"));
                         settings.setProperties(properties);
+
+                        String mode = (properties.getProperty("mode") != null) ? properties.getProperty("mode")
+                                        : "debug";
+                        if (mode.equals("production")) {
+                                System.out.println("Production mode enabled");
+                                settings.setAppMode(AppMode.production);
+                        } else {
+                                System.out.println("Debug mode enabled");
+                                settings.setAppMode(AppMode.debug);
+                        }
                 } catch (IOException e) {
                         e.printStackTrace();
                 }

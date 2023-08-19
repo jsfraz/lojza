@@ -1,44 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!-- Project definition and configuration -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <!-- Define the version of the POM model used -->
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- Basic project information -->
   <groupId>cz.jsfraz</groupId>
   <artifactId>lojza</artifactId>
   <version>1.0.0</version>
-
   <name>lojza</name>
   <url>https://github.com/jsfraz/lojza</url>
 
+  <!-- Define project properties (configuration values) -->
   <properties>
+    <!-- Set encoding for source files -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Define Java source and target versions -->
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
+  <!-- Declare project dependencies -->
   <dependencies>
+    <!-- JDA: Java Discord API -->
     <dependency>
       <groupId>net.dv8tion</groupId>
       <artifactId>JDA</artifactId>
       <version>5.0.0-beta.13</version>
     </dependency>
+    <!-- Jackson: JSON library for Java -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.15.2</version>
     </dependency>
+    <!-- MongoDB Java Driver -->
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
       <version>4.10.2</version>
     </dependency>
+    <!-- Rome: Java library for RSS and Atom feeds -->
     <dependency>
       <groupId>com.rometools</groupId>
       <artifactId>rome</artifactId>
       <version>2.1.0</version>
     </dependency>
+    <!-- Jsoup: Java HTML parser -->
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
@@ -46,41 +57,70 @@
     </dependency>
   </dependencies>
 
+  <!-- Define project profiles (configurations for different environments) -->
+  <profiles>
+    <!-- Debug Profile -->
+    <profile>
+      <id>debug</id>
+      <properties>
+        <!-- Set an app.mode property for debug mode -->
+        <app.mode>debug</app.mode>
+      </properties>
+    </profile>
+
+    <!-- Production Profile -->
+    <profile>
+      <id>production</id>
+      <properties>
+        <!-- Set an app.mode property for production mode -->
+        <app.mode>production</app.mode>
+      </properties>
+    </profile>
+  </profiles>
+
+  <!-- Build configuration -->
   <build>
+    <!-- Define resources to be included in the build -->
     <resources>
       <resource>
         <directory>src/main/resources</directory>
+        <!-- Enable filtering of resources (property substitution) -->
         <filtering>true</filtering>
       </resource>
     </resources>
+
+    <!-- Plugin management for build plugins -->
     <pluginManagement>
       <plugins>
-        <!--
-        https://stackoverflow.com/questions/9689793/cant-execute-jar-file-no-main-manifest-attribute -->
+        <!-- Maven JAR Plugin: Configure the JAR file generation -->
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.3.0</version>
           <configuration>
             <archive>
               <manifest>
+                <!-- Specify main class for the JAR's manifest -->
+                <mainClass>cz.jsfraz.lojza.App</mainClass>
+                <!-- Configure classpath in the manifest -->
                 <addClasspath>true</addClasspath>
                 <classpathPrefix>lib/</classpathPrefix>
-                <mainClass>cz.jsfraz.lojza.App</mainClass>
               </manifest>
             </archive>
           </configuration>
         </plugin>
-        <!--
-        https://stackoverflow.com/questions/574594/how-can-i-create-an-executable-runnable-jar-with-dependencies-using-maven -->
+
+        <!-- Maven Assembly Plugin: Create an executable JAR with dependencies -->
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>3.5.0</version>
           <configuration>
             <archive>
               <manifest>
+                <!-- Specify main class for the executable JAR's manifest -->
                 <mainClass>cz.jsfraz.lojza.App</mainClass>
               </manifest>
             </archive>
+            <!-- Use a predefined descriptor to include dependencies in the JAR -->
             <descriptorRefs>
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>

@@ -10,6 +10,7 @@ public class SettingSingleton {
     private static SettingSingleton instance;
     private Properties properties;      // https://stackoverflow.com/a/26573884/19371130
     private LocalDateTime started;
+    private AppMode appMode;
     private Map<String, Map<String, String>> localization;
     private Map<String, String> languagueNames;
     private Locale defaultLocale = Locale.en;
@@ -50,6 +51,14 @@ public class SettingSingleton {
 
     public void setStarted(LocalDateTime started) {
         this.started = started;
+    }
+
+    public void setAppMode(AppMode mode) {
+        this.appMode = mode;
+    }
+
+    public AppMode getAppMode() {
+        return this.appMode;
     }
 
     public Map<String,Map<String,String>> getLocalization() {
