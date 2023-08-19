@@ -1,6 +1,6 @@
 #https://www.baeldung.com/ops/docker-cache-maven-dependencies#multi-staged-layered-build
 
-FROM maven:latest as build
+FROM maven:3-eclipse-temurin-17-alpine as build
 ENV HOME=/usr/app
 RUN mkdir -p $HOME
 WORKDIR $HOME
