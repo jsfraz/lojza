@@ -26,7 +26,7 @@ ADD . $HOME
 RUN mvn clean install assembly:single -P production
 
 # Create a new stage using the Alpine Linux image with OpenJDK 17.
-FROM openjdk:17-jdk-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 # Copy the compiled JAR with dependencies from the 'build' stage to the new stage.
 COPY --from=build /usr/app/target/lojza-1.0.0-jar-with-dependencies.jar /app/runner.jar
