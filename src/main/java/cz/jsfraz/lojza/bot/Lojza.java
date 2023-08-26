@@ -83,10 +83,10 @@ public class Lojza {
                 if (System.getenv("MONGO_TIMEOUT") != null) {
                         settings.setMongoTimeoutMS(Integer.parseInt(System.getenv("MONGO_TIMEOUT")));
                 }
-                if (System.getenv("RSS_REFRESH_MINUTES") != null) {
-                        int value = Integer.parseInt(System.getenv("RSS_REFRESH_MINUTES"));
+                if (System.getenv("RSS_REFRESH") != null) {
+                        int value = Integer.parseInt(System.getenv("RSS_REFRESH"));
                         if (value > 1440 || value < 15) {
-                                System.out.println("RSS_REFRESH_MINUTES: value between 15 and 1440 expected.");
+                                System.out.println("RSS_REFRESH: value between 15 and 1440 expected.");
                         } else {
                                 settings.setRssRefreshMinutes(value);
                         }
