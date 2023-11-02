@@ -29,19 +29,19 @@
     <dependency>
       <groupId>net.dv8tion</groupId>
       <artifactId>JDA</artifactId>
-      <version>5.0.0-beta.13</version>
+      <version>5.0.0-beta.17</version>
     </dependency>
     <!-- Jackson: JSON library for Java -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.15.2</version>
+      <version>2.15.3</version>
     </dependency>
     <!-- MongoDB Java Driver -->
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
-      <version>4.10.2</version>
+      <version>4.11.0</version>
     </dependency>
     <!-- Rome: Java library for RSS and Atom feeds -->
     <dependency>
@@ -53,7 +53,7 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.16.1</version>
+      <version>1.16.2</version>
     </dependency>
   </dependencies>
 
@@ -112,7 +112,7 @@
         <!-- Maven Assembly Plugin: Create an executable JAR with dependencies -->
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.6.0</version>
           <configuration>
             <archive>
               <manifest>
