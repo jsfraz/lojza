@@ -149,9 +149,9 @@ public class Utils {
                     String command = "`/" + slash.getName();
                     for (OptionData option : options) {
                         if (option.isRequired()) {
-                            command += " " + option.getName();
-                        } else {
                             command += " [" + option.getName() + "]";
+                        } else {
+                            command += " (" + option.getName() + ")";
                         }
                     }
                     command += "`";

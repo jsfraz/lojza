@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import com.mongodb.MongoException;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -97,6 +98,39 @@ public class SlashCommandListener extends ListenerAdapter {
             /* Fun commands */
             case "greet": // greet user
                 greetCommand(event, locale);
+                break;
+
+            /* Minecraft commands */
+            case "minecraft getserver": // get minecraft server address
+                getMinecraftServerAddressCommand(event, locale);
+                break;
+
+            case "minecraft setserver": // set minecraft server address
+                setMinecraftServerCommand(event, locale);
+                break;
+
+            case "minecraft removeserver": // remove minecraft server address
+                removeMinecraftServerCommand(event, locale);
+                break;
+
+            case "minecraft getchannel": // get minecraft channel command
+                getMinecraftChannelCommand(event, locale);
+                break;
+
+            case "minecraft setchannel": // set minecraft channel
+                setMinecraftChannelCommand(event, locale);
+                break;
+
+            case "minecraft removechannel": // remove minecraft channel
+                removeMinecraftChannelCommand(event, locale);
+                break;
+
+            case "minecraft setrole": // set minecraft role
+                setMinecraftRoleCommand(event, locale);
+                break;
+
+            case "mcrequest": // minecraft whitelist command
+                requestMinecraftWhitelistCommand(event, locale);
                 break;
 
             /* Developer commands */
@@ -477,6 +511,74 @@ public class SlashCommandListener extends ListenerAdapter {
     // greet command
     private void greetCommand(SlashCommandInteractionEvent event, Locale locale) {
         event.reply(String.format(lm.getText(locale, "textGreet"), event.getUser().getIdLong())).queue();
+    }
+
+    /* Minecraft commands */
+
+    // minecraft get server address command
+    private void getMinecraftServerAddressCommand(SlashCommandInteractionEvent event, Locale locale) {
+        String address = db.getMinecraftServerAddressById(event.getGuild().getIdLong());
+        if (address != "") {
+            event.reply(address).setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textEmptyMcAddress")).setEphemeral(true).queue();
+        }
+    }
+
+    // minecraft server command
+    private void setMinecraftServerCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // server option
+        OptionMapping serverOption = event.getOption("address");
+        // validate server address https://regex101.com/r/dRaNNH/1
+        Pattern address = Pattern.compile(
+                "^((?=[0-9.]+$)((25[0-5]|(2[0-4]|1[0-9])[0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|(2[0-4]|1[0-9])[0-9]|[1-9]?[0-9])|(?=[0-9.]*[a-zA-Z])([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])((\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*(\\.[a-zA-Z]{2,31}))+)$");
+        if (address.matcher(serverOption.getAsString()).matches()) {
+            db.updateMinecraftServerAddressById(event.getGuild().getIdLong(),
+                    serverOption.getAsString());
+            event.reply(String.format(lm.getText(locale, "textValidMcAddress"), serverOption.getAsString()))
+                    .setEphemeral(true).queue();
+        } else {
+            event.reply(String.format(lm.getText(locale, "textInvalidMcAddress"), serverOption.getAsString()))
+                    .setEphemeral(true).queue();
+        }
+    }
+
+    // minecraft remove server command
+    private void removeMinecraftServerCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateMinecraftServerAddressById(event.getGuild().getIdLong(), "");
+        event.reply(lm.getText(locale, "textMcAddressRemoved")).setEphemeral(true).queue();
+    }
+
+    // get minecraft channel command
+    private void getMinecraftChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long channelId = db.getMinecraftChannelById(event.getGuild().getIdLong());
+        if (channelId != 0) {
+            event.reply("<@" + channelId + ">").setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textEmptyMcChannel")).setEphemeral(true).queue();
+        }
+    }
+
+    // minecraft channel command
+    private void setMinecraftChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateMinecraftChannelById(event.getGuild().getIdLong(), event.getChannelIdLong());
+        event.reply(lm.getText(locale, "textMcChannelSet")).setEphemeral(true).queue();
+    }
+
+    // minecraft remove channel command
+    private void removeMinecraftChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateMinecraftChannelById(event.getGuild().getIdLong(), 0);
+        event.reply(lm.getText(locale, "textMcChannelRemoved")).setEphemeral(true).queue();
+    }
+
+    // minecraft role command
+    private void setMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+
+    }
+
+    // minecraft whitelist command
+    private void requestMinecraftWhitelistCommand(SlashCommandInteractionEvent event, Locale locale) {
+
     }
 
     /* Developer commands */

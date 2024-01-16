@@ -41,4 +41,12 @@ public interface IDatabase {
     public List<DiscordGuild> getGuildsRssBy();
 
     public void updateRssUpdatedDateById(long guildId, String url, Date updated);
+
+    public String getMinecraftServerAddressById(long guildId);
+
+    public void updateMinecraftServerAddressById(long guildId, String address);
+
+    public long getMinecraftChannelById(long guildId);
+
+    public void updateMinecraftChannelById(long guildId, long channelId);
 }

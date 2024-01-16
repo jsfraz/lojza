@@ -324,4 +324,84 @@ public class Database implements IDatabase {
         feeds.set(index, feed);
         collection.updateOne(filters, Updates.set("rssFeeds", feeds));
     }
+
+    // gets minecraft server address
+    @Override
+    public String getMinecraftServerAddressById(long guildId) {
+        try {
+            // gets guild locale by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("minecraftServerAddress"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return "";
+            } else {
+                // if exists return
+                return guild.getMinecraftServerAddress();
+            }
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // updates minecraft server address
+    @Override
+    public void updateMinecraftServerAddressById(long guildId, String address) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("minecraftServerAddress", address));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setMinecraftServerAddress(address);
+            collection.insertOne(guild);
+        }
+    }
+
+    // gets minecraft whitelist channel
+    @Override
+    public long getMinecraftChannelById(long guildId) {
+        try {
+            // gets guild locale by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("minecraftWhitelistChannelId"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return 0;
+            } else {
+                // if exists return
+                return guild.getMinecraftWhitelistChannelId();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // update minecraft whitelist channel
+    @Override
+    public void updateMinecraftChannelById(long guildId, long channelId) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("minecraftWhitelistChannelId", channelId));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setMinecraftWhitelistChannelId(channelId);
+            collection.insertOne(guild);
+        }
+    }
 }

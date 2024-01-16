@@ -11,6 +11,9 @@ public class DiscordGuild {
     private boolean rss;
     private long rssChannelId;
     private List<RssFeed> rssFeeds;
+    private String minecraftServerAddress;
+    private long minecraftWhitelistChannelId;
+    private long minecraftWhitelistedRoleId;
 
     public DiscordGuild() {
     }
@@ -21,6 +24,9 @@ public class DiscordGuild {
         this.rss = true;
         this.rssChannelId = 0;
         this.rssFeeds = new ArrayList<RssFeed>();
+        this.minecraftServerAddress = "";
+        this.minecraftWhitelistChannelId = 0;
+        this.minecraftWhitelistedRoleId = 0;
     }
 
     public long getGuildId() {
@@ -61,5 +67,29 @@ public class DiscordGuild {
 
     public void setRssFeeds(List<RssFeed> rssFeeds) {
         this.rssFeeds = rssFeeds;
-    }    
+    }
+
+    public String getMinecraftServerAddress() {
+        return this.minecraftServerAddress;
+    }
+
+    public void setMinecraftServerAddress(String address) {
+        this.minecraftServerAddress = address;
+    }
+
+    public long getMinecraftWhitelistChannelId() {
+        return this.minecraftWhitelistChannelId;
+    }
+
+    public void setMinecraftWhitelistChannelId(long id) {
+        this.minecraftWhitelistChannelId = id;
+    }
+
+    public long getMinecraftWhitelistedRoleId() {
+        return this.minecraftWhitelistedRoleId;
+    }
+
+    public void setMinecraftWhitelistedRoleId(long id) {
+        this.minecraftWhitelistedRoleId = id;
+    }
 }

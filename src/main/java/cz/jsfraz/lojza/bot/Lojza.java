@@ -33,6 +33,8 @@ import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 // https://github.com/DV8FromTheWorld/JDA/tree/master/src/examples/java
 
+// TODO verification role
+
 public class Lojza {
         private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -56,7 +58,7 @@ public class Lojza {
                         } else {
                                 settings.setAppMode(AppMode.debug);
                         }
-                        System.out.println("[" + settings.getAppMode().name().toUpperCase() +"] mode enabled.");
+                        System.out.println("[" + settings.getAppMode().name().toUpperCase() + "] mode enabled.");
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
@@ -203,11 +205,62 @@ public class Lojza {
                                                                                 .enabledFor(Permission.ADMINISTRATOR))
                                 }),
                                 // fun commands (it's difficult, because fun is subjective thing...)
-                                new CommandSet(CommandCategory.categoryFun, ":zany_face:", new CommandData[] {
+                                new CommandSet(CommandCategory.categoryFun, ":laughing:", new CommandData[] {
                                                 // greet command
                                                 Commands.slash("greet",
                                                                 "He just says hi, like I don't know what else to write here.")
                                                                 .setLocalizationFunction(localizationFunction)
+                                }),
+                                // minecraft commands
+                                new CommandSet(CommandCategory.categoryMinecraft, ":pick:", new CommandData[] {
+
+                                                Commands.slash("minecraft", "Manages Minecraft settings.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR))
+                                                                .addSubcommands(
+                                                                                // get minecraft server address
+                                                                                new SubcommandData("getserver",
+                                                                                                "Shows Minecraft server address."),
+                                                                                // set minecraft server address
+                                                                                new SubcommandData("setserver",
+                                                                                                "Sets Minecraft server address.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.STRING,
+                                                                                                                "address",
+                                                                                                                "Server address.")
+                                                                                                                .setRequired(true)),
+                                                                                // remove minecraft server address
+                                                                                new SubcommandData("removeserver",
+                                                                                                "Removes Minecraft server address."),
+                                                                                // get whitelist request channel
+                                                                                new SubcommandData("getchannel",
+                                                                                                "Gets text channel set for Minecraft server whitelist requests."),
+                                                                                // set whitelist request channel
+                                                                                new SubcommandData("setchannel",
+                                                                                                "Sets the current text channel for Minecraft server whitelist requests."),
+                                                                                // remove whitelist request channel
+                                                                                new SubcommandData("removechannel",
+                                                                                                "Removes text channel set for Minecraft server whitelist requests."),
+                                                                                // set whitelisted role
+                                                                                new SubcommandData("setrole",
+                                                                                                "Sets role for whitelisted users.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.ROLE,
+                                                                                                                "role",
+                                                                                                                "Whitelisted role.")
+                                                                                                                .setRequired(true))),
+                                                // minecraft server whitelist request
+                                                Commands.slash("mcrequest", "Request whitelisting on Minecraft server.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                .addOptions(new OptionData(OptionType.STRING,
+                                                                                "username", "Minecraft username.")
+                                                                                .setRequired(true))
                                 }),
                 });
                 // developer commands

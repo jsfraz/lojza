@@ -4,5 +4,6 @@ public enum CommandCategory {
     categoryHelp,
     categoryAdmin,
     categoryFun,
+    categoryMinecraft,
     categoryDev
 }
