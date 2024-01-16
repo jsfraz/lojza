@@ -651,6 +651,7 @@ public class SlashCommandListener extends ListenerAdapter {
         eb.addField(lm.getText(locale, "textJavaVerTitle"), javaVersion, false);
         eb.addField(lm.getText(locale, "textBotVerTitle"), botVersion, false);
         eb.addField(lm.getText(locale, "textUptimeTitle"), String.format("%02d:%02d:%02d", HH, MM, SS), false);
+        eb.addField(lm.getText(locale, "textAppModeTitle"), settings.getAppMode().name(), false);
 
         // reply with embed
         event.replyEmbeds(eb.build()).setEphemeral(true).queue();

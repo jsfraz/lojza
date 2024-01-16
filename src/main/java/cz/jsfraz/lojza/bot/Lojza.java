@@ -262,93 +262,89 @@ public class Lojza {
                                                                                 "username", "Minecraft username.")
                                                                                 .setRequired(true))
                                 }),
+                                // developer commands
+                                new CommandSet(CommandCategory.categoryDev,
+                                                ":man_technologist:", new CommandData[] {
+                                                                // test command
+                                                                Commands.slash("test", "Command for testing purposes.")
+                                                                                .setLocalizationFunction(
+                                                                                                localizationFunction)
+                                                                                // subcommands
+                                                                                .addSubcommands(
+                                                                                                // test localization
+                                                                                                new SubcommandData(
+                                                                                                                "localization",
+                                                                                                                "For testing localiztion.")
+                                                                                                                .addOptions(
+                                                                                                                                // locale
+                                                                                                                                // to
+                                                                                                                                // choose
+                                                                                                                                new OptionData(OptionType.STRING,
+                                                                                                                                                "locale",
+                                                                                                                                                "Locale for testing.")
+                                                                                                                                                // locale
+                                                                                                                                                // chocies
+                                                                                                                                                .addChoices(Utils
+                                                                                                                                                                .getChoicesFromKeys(
+                                                                                                                                                                                settings.getLocalization()
+                                                                                                                                                                                                .keySet()))
+                                                                                                                                                .setRequired(true),
+                                                                                                                                // name
+                                                                                                                                // of
+                                                                                                                                // string
+                                                                                                                                new OptionData(OptionType.STRING,
+                                                                                                                                                "text",
+                                                                                                                                                "Name of string.")
+                                                                                                                                                // name
+                                                                                                                                                // choices
+                                                                                                                                                .addChoices(Utils
+                                                                                                                                                                .getChoicesFromKeys(
+                                                                                                                                                                                settings.getLocalization()
+                                                                                                                                                                                                .get(settings.getLocalization()
+                                                                                                                                                                                                                .entrySet()
+                                                                                                                                                                                                                .iterator()
+                                                                                                                                                                                                                .next()
+                                                                                                                                                                                                                .getKey())
+                                                                                                                                                                                                .keySet()))
+                                                                                                                                                // required
+                                                                                                                                                .setRequired(true)),
+                                                                                                // test database
+                                                                                                new SubcommandData(
+                                                                                                                "database",
+                                                                                                                "Tests database connection."),
+                                                                                                // test rss
+                                                                                                new SubcommandData(
+                                                                                                                "rss",
+                                                                                                                "Tests RSS feed.")
+                                                                                                                .addOptions(
+                                                                                                                                // url
+                                                                                                                                // of
+                                                                                                                                // rss
+                                                                                                                                // channel
+                                                                                                                                new OptionData(
+                                                                                                                                                OptionType.STRING,
+                                                                                                                                                "url",
+                                                                                                                                                "URL of RSS channel.")
+                                                                                                                                                .setRequired(true)))
+                                                                                // guild-only command
+                                                                                .setGuildOnly(true)
+                                                                                // admin-only command
+                                                                                .setDefaultPermissions(
+                                                                                                DefaultMemberPermissions
+                                                                                                                .enabledFor(Permission.ADMINISTRATOR)),
+                                                                // info command
+                                                                Commands.slash("info",
+                                                                                "Gets system info.")
+                                                                                .setLocalizationFunction(
+                                                                                                localizationFunction)
+                                                                                // guild-only command
+                                                                                .setGuildOnly(true)
+                                                                                // admin-only command
+                                                                                .setDefaultPermissions(
+                                                                                                DefaultMemberPermissions
+                                                                                                                .enabledFor(Permission.ADMINISTRATOR))
+                                                })
                 });
-                // developer commands
-                // dev command set is added to other sets
-                if (settings.getAppMode() == AppMode.debug) {
-                        CommandSet[] commandSets = new CommandSet[settings.getCommandSets().length + 1];
-                        int index = 0;
-                        for (CommandSet set : settings.getCommandSets()) {
-                                commandSets[index] = set;
-                                index++;
-                        }
-                        commandSets[commandSets.length - 1] = new CommandSet(CommandCategory.categoryDev,
-                                        ":man_technologist:", new CommandData[] {
-                                                        // test command
-                                                        Commands.slash("test", "Command for testing purposes.")
-                                                                        .setLocalizationFunction(localizationFunction)
-                                                                        // subcommands
-                                                                        .addSubcommands(
-                                                                                        // test localization
-                                                                                        new SubcommandData(
-                                                                                                        "localization",
-                                                                                                        "For testing localiztion.")
-                                                                                                        .addOptions(
-                                                                                                                        // locale
-                                                                                                                        // to
-                                                                                                                        // choose
-                                                                                                                        new OptionData(OptionType.STRING,
-                                                                                                                                        "locale",
-                                                                                                                                        "Locale for testing.")
-                                                                                                                                        // locale
-                                                                                                                                        // chocies
-                                                                                                                                        .addChoices(Utils
-                                                                                                                                                        .getChoicesFromKeys(
-                                                                                                                                                                        settings.getLocalization()
-                                                                                                                                                                                        .keySet()))
-                                                                                                                                        .setRequired(true),
-                                                                                                                        // name
-                                                                                                                        // of
-                                                                                                                        // string
-                                                                                                                        new OptionData(OptionType.STRING,
-                                                                                                                                        "text",
-                                                                                                                                        "Name of string.")
-                                                                                                                                        // name
-                                                                                                                                        // choices
-                                                                                                                                        .addChoices(Utils
-                                                                                                                                                        .getChoicesFromKeys(
-                                                                                                                                                                        settings.getLocalization()
-                                                                                                                                                                                        .get(settings.getLocalization()
-                                                                                                                                                                                                        .entrySet()
-                                                                                                                                                                                                        .iterator()
-                                                                                                                                                                                                        .next()
-                                                                                                                                                                                                        .getKey())
-                                                                                                                                                                                        .keySet()))
-                                                                                                                                        // required
-                                                                                                                                        .setRequired(true)),
-                                                                                        // test database
-                                                                                        new SubcommandData("database",
-                                                                                                        "Tests database connection."),
-                                                                                        // test rss
-                                                                                        new SubcommandData("rss",
-                                                                                                        "Tests RSS feed.")
-                                                                                                        .addOptions(
-                                                                                                                        // url
-                                                                                                                        // of
-                                                                                                                        // rss
-                                                                                                                        // channel
-                                                                                                                        new OptionData(
-                                                                                                                                        OptionType.STRING,
-                                                                                                                                        "url",
-                                                                                                                                        "URL of RSS channel.")
-                                                                                                                                        .setRequired(true)))
-                                                                        // guild-only command
-                                                                        .setGuildOnly(true)
-                                                                        // admin-only command
-                                                                        .setDefaultPermissions(DefaultMemberPermissions
-                                                                                        .enabledFor(Permission.ADMINISTRATOR)),
-                                                        // info command
-                                                        Commands.slash("info",
-                                                                        "Gets system info.")
-                                                                        .setLocalizationFunction(localizationFunction)
-                                                                        // guild-only command
-                                                                        .setGuildOnly(true)
-                                                                        // admin-only command
-                                                                        .setDefaultPermissions(DefaultMemberPermissions
-                                                                                        .enabledFor(Permission.ADMINISTRATOR))
-                                        });
-                        settings.setCommandSets(commandSets);
-                }
 
                 // JDA instance
                 JDABuilder builder = JDABuilder.createDefault(settings.getDiscordToken());

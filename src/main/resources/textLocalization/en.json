@@ -23,6 +23,7 @@
     "textJavaVerTitle": "Java version",
     "textBotVerTitle": "Bot version",
     "textUptimeTitle": "Uptime",
+    "textAppModeTitle": "App mode",
     "textSetupTitle": "Setup",
     "textSetupDesc": "Here you can change the settings and behavior of Lojza on your server.",
     "textDbOk": "Aight.",
