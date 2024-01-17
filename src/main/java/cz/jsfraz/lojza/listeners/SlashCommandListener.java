@@ -109,8 +109,8 @@ public class SlashCommandListener extends ListenerAdapter {
                 setMinecraftServerCommand(event, locale);
                 break;
 
-            case "minecraft removeserver": // remove minecraft server address
-                removeMinecraftServerCommand(event, locale);
+            case "minecraft resetserver": // reset minecraft server address
+                resetMinecraftServerCommand(event, locale);
                 break;
 
             case "minecraft getchannel": // get minecraft channel command
@@ -121,12 +121,20 @@ public class SlashCommandListener extends ListenerAdapter {
                 setMinecraftChannelCommand(event, locale);
                 break;
 
-            case "minecraft removechannel": // remove minecraft channel
-                removeMinecraftChannelCommand(event, locale);
+            case "minecraft resetchannel": // reset minecraft channel
+                resetMinecraftChannelCommand(event, locale);
+                break;
+
+            case "minecraft getrole": // get minecraft role command
+                getMinecraftRoleCommand(event, locale);
                 break;
 
             case "minecraft setrole": // set minecraft role
                 setMinecraftRoleCommand(event, locale);
+                break;
+
+            case "minecraft resetrole": // reset minecraft role
+                resetMinecraftRoleCommand(event, locale);
                 break;
 
             case "mcrequest": // minecraft whitelist command
@@ -161,7 +169,7 @@ public class SlashCommandListener extends ListenerAdapter {
     // help
     private void helpCommand(SlashCommandInteractionEvent event, Locale locale) {
         // reply with embed
-        event.replyEmbeds(Utils.getHelpEmbed(lm, locale)).queue();
+        event.replyEmbeds(Utils.getHelpEmbed(lm, locale)).setEphemeral(true).queue();
     }
 
     /* Admin commands */
@@ -304,6 +312,11 @@ public class SlashCommandListener extends ListenerAdapter {
                     case "rss":
                         db.updateRssById(event.getGuild().getIdLong(), true);
                         break;
+
+                    // minecraft
+                    case "minecraft":
+                        db.updateMinecraftById(event.getGuild().getIdLong(), true);
+                        break;
                 }
                 break;
 
@@ -314,6 +327,11 @@ public class SlashCommandListener extends ListenerAdapter {
                     // rss
                     case "rss":
                         db.updateRssById(event.getGuild().getIdLong(), false);
+                        break;
+
+                    // minecraft
+                    case "minecraft":
+                        db.updateMinecraftById(event.getGuild().getIdLong(), false);
                         break;
                 }
                 break;
@@ -544,7 +562,7 @@ public class SlashCommandListener extends ListenerAdapter {
     }
 
     // minecraft remove server command
-    private void removeMinecraftServerCommand(SlashCommandInteractionEvent event, Locale locale) {
+    private void resetMinecraftServerCommand(SlashCommandInteractionEvent event, Locale locale) {
         db.updateMinecraftServerAddressById(event.getGuild().getIdLong(), "");
         event.reply(lm.getText(locale, "textMcAddressRemoved")).setEphemeral(true).queue();
     }
@@ -565,20 +583,39 @@ public class SlashCommandListener extends ListenerAdapter {
         event.reply(lm.getText(locale, "textMcChannelSet")).setEphemeral(true).queue();
     }
 
-    // minecraft remove channel command
-    private void removeMinecraftChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+    // minecraft reset channel command
+    private void resetMinecraftChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
         db.updateMinecraftChannelById(event.getGuild().getIdLong(), 0);
-        event.reply(lm.getText(locale, "textMcChannelRemoved")).setEphemeral(true).queue();
+        event.reply(lm.getText(locale, "textMcChannelReset")).setEphemeral(true).queue();
+    }
+
+    // get minecraft role command
+    private void getMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long roleId = db.getMinecraftRoleById(event.getGuild().getIdLong());
+        if (roleId != 0) {
+            event.reply("<@" + roleId + ">").setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textNoMcRole")).setEphemeral(true).queue();
+        }
     }
 
     // minecraft role command
     private void setMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // server option
+        OptionMapping roleOption = event.getOption("role");
+        db.updateMinecraftRoleById(event.getGuild().getIdLong(), roleOption.getAsRole().getIdLong());
+        event.reply(lm.getText(locale, "textMcRoleSet")).setEphemeral(true).queue();
+    }
 
+    // minecraft reset role command
+    private void resetMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateMinecraftChannelById(event.getGuild().getIdLong(), 0);
+        event.reply(lm.getText(locale, "textMcRoleReset")).setEphemeral(true).queue();
     }
 
     // minecraft whitelist command
     private void requestMinecraftWhitelistCommand(SlashCommandInteractionEvent event, Locale locale) {
-
+        // TODO requestMinecraftWhitelistCommand
     }
 
     /* Developer commands */

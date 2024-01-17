@@ -329,7 +329,7 @@ public class Database implements IDatabase {
     @Override
     public String getMinecraftServerAddressById(long guildId) {
         try {
-            // gets guild locale by id
+            // gets guild server address by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
             Bson filter = Filters.eq("guildId", guildId);
             Bson projection = Projections.fields(Projections.include("minecraftServerAddress"));
@@ -369,7 +369,7 @@ public class Database implements IDatabase {
     @Override
     public long getMinecraftChannelById(long guildId) {
         try {
-            // gets guild locale by id
+            // gets guild minecraft channel id by id
             MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
             Bson filter = Filters.eq("guildId", guildId);
             Bson projection = Projections.fields(Projections.include("minecraftWhitelistChannelId"));
@@ -401,6 +401,64 @@ public class Database implements IDatabase {
             // insert if doesn't exist
             guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
             guild.setMinecraftWhitelistChannelId(channelId);
+            collection.insertOne(guild);
+        }
+    }
+
+    // gets minecraft whitelist role
+    @Override
+    public long getMinecraftRoleById(long guildId) {
+        try {
+            // gets guild role id by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("minecraftWhitelistedRoleId"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return 0;
+            } else {
+                // if exists return
+                return guild.getMinecraftWhitelistedRoleId();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // update minecraft whitelist role
+    @Override
+    public void updateMinecraftRoleById(long guildId, long roleId) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("minecraftWhitelistedRoleId", roleId));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setMinecraftWhitelistedRoleId(roleId);
+            collection.insertOne(guild);
+        }
+    }
+
+    // updates DiscordGuild minecraft
+    @Override
+    public void updateMinecraftById(long guildId, boolean value) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("minecraft", value));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setMinecraft(value);
             collection.insertOne(guild);
         }
     }

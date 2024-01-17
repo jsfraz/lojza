@@ -13,11 +13,13 @@
     "textGreet": "My name is Lojza, nice to meet you <@%s>.",
     "textInvalidMcAddress": "Does %s look like a server address to you?",
     "textValidMcAddress": "I'm setting the server address to %s.",
-    "textMcAddressRemoved": "Address removed.",
+    "textMcAddressReset": "Address reset.",
     "textEmptyMcAddress": "The address is not set.",
     "textEmptyMcChannel": "The channel is not set.",
     "textMcChannelSet": "Channel set.",
-    "textMcChannelRemoved": "Channel removed.",
+    "textMcChannelReset": "Channel reset.",
+    "textNoMcRole": "The role is not set.",
+    "textMcRoleSet": "Role set.",
     "textStatusTitle": "Status",
     "textOsTitle": "Operating system",
     "textJavaVerTitle": "Java version",
@@ -54,5 +56,6 @@
     "categoryMinecraft": "Minecraft",
     "categoryDev": "Developement",
     "optionLocale": "Language",
-    "optionRss": "RSS channels"
+    "optionRss": "RSS channels",
+    "optionMinecraft": "Minecraft"
 }

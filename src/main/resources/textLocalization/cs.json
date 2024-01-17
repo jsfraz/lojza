@@ -13,11 +13,13 @@
     "textGreet": "Já jsem nějakej Lojza, těší mě <@%s>.",
     "textInvalidMcAddress": "Připadá ti %s jako adresa serveru?",
     "textValidMcAddress": "Nastavuju adresu serveru na %s.",
-    "textMcAddressRemoved": "Adresa odstraněna.",
+    "textMcAddressReset": "Adresa resetována.",
     "textEmptyMcAddress": "Adresa není nastavená.",
     "textEmptyMcChannel": "Kanál není nastavený.",
     "textMcChannelSet": "Kanál nastaven.",
-    "textMcChannelRemoved": "Kanál odstraněn.",
+    "textMcChannelReset": "Kanál resetován.",
+    "textNoMcRole": "Role není nastavená.",
+    "textMcRoleSet": "Role nastavena.",
     "textStatusTitle": "Stav",
     "textOsTitle": "Operační systém",
     "textJavaVerTitle": "Verze Javy",
@@ -54,5 +56,6 @@
     "categoryMinecraft": "Minecraft",
     "categoryDev": "Vývoj",
     "optionLocale": "Jazyk",
-    "optionRss": "RSS kanály"
+    "optionRss": "RSS kanály",
+    "optionMinecraft": "Minecraft"
 }

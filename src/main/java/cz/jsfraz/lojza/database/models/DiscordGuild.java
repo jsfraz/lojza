@@ -14,6 +14,7 @@ public class DiscordGuild {
     private String minecraftServerAddress;
     private long minecraftWhitelistChannelId;
     private long minecraftWhitelistedRoleId;
+    private boolean minecraft;
 
     public DiscordGuild() {
     }
@@ -21,12 +22,13 @@ public class DiscordGuild {
     public DiscordGuild(long guildId, Locale locale) {
         this.guildId = guildId;
         this.locale = locale;
-        this.rss = true;
+        this.rss = false;
         this.rssChannelId = 0;
         this.rssFeeds = new ArrayList<RssFeed>();
         this.minecraftServerAddress = "";
         this.minecraftWhitelistChannelId = 0;
         this.minecraftWhitelistedRoleId = 0;
+        this.minecraft = false;
     }
 
     public long getGuildId() {
@@ -91,5 +93,13 @@ public class DiscordGuild {
 
     public void setMinecraftWhitelistedRoleId(long id) {
         this.minecraftWhitelistedRoleId = id;
+    }
+
+    public boolean getMinecraft() {
+        return this.minecraft;
+    }
+
+    public void setMinecraft(boolean minecraft) {
+        this.minecraft = minecraft;
     }
 }

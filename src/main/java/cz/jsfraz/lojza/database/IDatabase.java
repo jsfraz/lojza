@@ -49,4 +49,10 @@ public interface IDatabase {
     public long getMinecraftChannelById(long guildId);
 
     public void updateMinecraftChannelById(long guildId, long channelId);
+
+    public long getMinecraftRoleById(long guildId);
+
+    public void updateMinecraftRoleById(long guildId, long roleId);
+
+    public void updateMinecraftById(long guildId, boolean value);
 }

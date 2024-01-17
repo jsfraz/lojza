@@ -180,7 +180,7 @@ public class Utils {
     public static MessageEmbed getSetupEmbed(ILocalizationManager lm, Locale locale) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(Color.decode("#2b2d31"));
-        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"), false);
+        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"),false);
         return eb.build();
     }
 
@@ -201,7 +201,7 @@ public class Utils {
         return selectMenuBuilder.build();
     }
 
-    // // sends announcement messages based on guild's rss feed list
+    // sends announcement messages based on guild's rss feed list
     public static void sendGuildRssAnnoucement(ILocalizationManager lm, IDatabase db, SettingSingleton settings,
             DiscordGuild guild) {
         ExecutorService execRss = Executors.newCachedThreadPool();

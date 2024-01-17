@@ -233,18 +233,21 @@ public class Lojza {
                                                                                                                 "address",
                                                                                                                 "Server address.")
                                                                                                                 .setRequired(true)),
-                                                                                // remove minecraft server address
-                                                                                new SubcommandData("removeserver",
-                                                                                                "Removes Minecraft server address."),
+                                                                                // reset minecraft server address
+                                                                                new SubcommandData("resetserver",
+                                                                                                "Resets Minecraft server address."),
                                                                                 // get whitelist request channel
                                                                                 new SubcommandData("getchannel",
                                                                                                 "Gets text channel set for Minecraft server whitelist requests."),
                                                                                 // set whitelist request channel
                                                                                 new SubcommandData("setchannel",
                                                                                                 "Sets the current text channel for Minecraft server whitelist requests."),
-                                                                                // remove whitelist request channel
-                                                                                new SubcommandData("removechannel",
-                                                                                                "Removes text channel set for Minecraft server whitelist requests."),
+                                                                                // reset whitelist request channel
+                                                                                new SubcommandData("resetchannel",
+                                                                                                "Resets text channel for Minecraft server whitelist requests."),
+                                                                                // get whitelist role
+                                                                                new SubcommandData("getrole",
+                                                                                                "Gets Minecraft whitelist role."),
                                                                                 // set whitelisted role
                                                                                 new SubcommandData("setrole",
                                                                                                 "Sets role for whitelisted users.")
@@ -252,7 +255,10 @@ public class Lojza {
                                                                                                                 OptionType.ROLE,
                                                                                                                 "role",
                                                                                                                 "Whitelisted role.")
-                                                                                                                .setRequired(true))),
+                                                                                                                .setRequired(true)),
+                                                                                // reset whitelist role
+                                                                                new SubcommandData("resetrole",
+                                                                                                "Resets Minecraft server whitelist role.")),
                                                 // minecraft server whitelist request
                                                 Commands.slash("mcrequest", "Request whitelisting on Minecraft server.")
                                                                 .setLocalizationFunction(localizationFunction)
