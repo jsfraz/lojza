@@ -258,7 +258,15 @@ public class Lojza {
                                                                                                                 .setRequired(true)),
                                                                                 // reset whitelist role
                                                                                 new SubcommandData("resetrole",
-                                                                                                "Resets Minecraft server whitelist role.")),
+                                                                                                "Resets Minecraft server whitelist role."),
+                                                                                // set minecraft rcon password
+                                                                                new SubcommandData("setrconpassword",
+                                                                                                "Sets Minecraft server address.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.STRING,
+                                                                                                                "password",
+                                                                                                                "Server RCON address.")
+                                                                                                                .setRequired(true))),
                                                 // minecraft server whitelist request
                                                 Commands.slash("mcrequest", "Request whitelisting on Minecraft server.")
                                                                 .setLocalizationFunction(localizationFunction)

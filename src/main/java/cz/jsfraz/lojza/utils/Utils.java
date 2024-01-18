@@ -16,6 +16,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -39,6 +40,8 @@ import cz.jsfraz.lojza.database.models.RssFeed;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.Command.Type;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -187,10 +190,10 @@ public class Utils {
     }
 
     // setup select menu
-    public static StringSelectMenu getSetupSelectMenu(ILocalizationManager lm, Locale locale, String userId,
+    public static StringSelectMenu getSetupSelectMenu(ILocalizationManager lm, Locale locale,
             SetupOption option) {
         // https://stackoverflow.com/questions/74833816/how-to-send-dropdown-menu-in-java-discord-api
-        StringSelectMenu.Builder selectMenuBuilder = StringSelectMenu.create(userId + ":setupMenu");
+        StringSelectMenu.Builder selectMenuBuilder = StringSelectMenu.create("setupMenu");
         for (SetupOption o : EnumSet.allOf(SetupOption.class)) {
             selectMenuBuilder.addOption(
                     lm.getText(locale, "option" + o.name().substring(0, 1).toUpperCase() + o.name().substring(1)),
@@ -330,11 +333,24 @@ public class Utils {
         }
     }
 
+    // check if guild channel with id exists
     public static boolean guildChannelWithIdExists(Guild guild, long channelId) {
-        return guild.getChannels().stream().filter(x -> x.getIdLong() == channelId).findFirst() != null;
+        Optional<GuildChannel> channel = guild.getChannels().stream().filter(x -> x.getIdLong() == channelId).findFirst();
+        return channel.isPresent();
     }
 
+    // check if guild role with id exists
     public static boolean guildRoleWithIdExists(Guild guild, long roleId) {
-        return guild.getRoles().stream().filter(x -> x.getIdLong() == roleId).findFirst() != null;
+        Optional<Role> role = guild.getRoles().stream().filter(x -> x.getIdLong() == roleId).findFirst();
+        return role.isPresent();
+    }
+
+    // minecraft request embed
+    public static MessageEmbed getMinecraftRequestEmbed(String username, ILocalizationManager lm, Locale locale) {
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setColor(Color.decode("#2b2d31"));
+        eb.addField(lm.getText(locale, "textMcRequestTitle"), String.format(lm.getText(locale, "textMcRequest"), username),
+                false);
+        return eb.build();
     }
 }

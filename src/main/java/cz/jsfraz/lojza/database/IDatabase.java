@@ -57,4 +57,6 @@ public interface IDatabase {
     public void updateMinecraftById(long guildId, boolean value);
 
     public DiscordGuild getDiscordGuildWithMinecraftInfo(long guildId);
+
+    public void updateMinecraftRconPasswordById(long guildId, String password);
 }

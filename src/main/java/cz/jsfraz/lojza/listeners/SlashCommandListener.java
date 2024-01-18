@@ -20,12 +20,14 @@ import cz.jsfraz.lojza.database.IDatabase;
 import cz.jsfraz.lojza.database.models.DiscordGuild;
 import cz.jsfraz.lojza.database.models.Locale;
 import cz.jsfraz.lojza.database.models.RssFeed;
+import cz.jsfraz.lojza.utils.ButtonOption;
 import cz.jsfraz.lojza.utils.ILocalizationManager;
 import cz.jsfraz.lojza.utils.LocalizationManager;
 import cz.jsfraz.lojza.utils.SettingSingleton;
 import cz.jsfraz.lojza.utils.SetupOption;
 import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -142,6 +144,10 @@ public class SlashCommandListener extends ListenerAdapter {
                 requestMinecraftWhitelistCommand(event, locale);
                 break;
 
+            case "minecraft setrconpassword": // minecraft rcon password
+                setMinecraftServerRconPasswordCommand(event, locale);
+                break;
+
             /* Developer commands */
             case "test localization": // test localization command
                 testLocalization(event);
@@ -185,11 +191,10 @@ public class SlashCommandListener extends ListenerAdapter {
             }
         }
 
-        String userId = event.getUser().getId();
         // reply with button menu
         event.reply(lm.getText(locale, "textDeleteMessagesAll"))
-                .addActionRow(Button.primary(userId + ":deleteAll", lm.getText(locale, "textYes")),
-                        Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
+                .addActionRow(Button.primary("deleteAll", lm.getText(locale, "textYes")),
+                        Button.secondary("cancel", lm.getText(locale, "textNo")))
                 .setEphemeral(true).queue();
     }
 
@@ -200,32 +205,29 @@ public class SlashCommandListener extends ListenerAdapter {
         OptionMapping countOption = event.getOption("count");
 
         // reply with button menu
-        String userId = event.getUser().getId();
         event.reply(String.format(lm.getText(locale, "textDeleteMessagesCount"), countOption.getAsInt()))
-                .addActionRow(Button.primary(userId + ":deleteCount:" + countOption.getAsInt(),
+                .addActionRow(Button.primary("deleteCount:" + countOption.getAsInt(),
                         lm.getText(locale, "textYes")),
-                        Button.secondary(userId + ":cancel", lm.getText(locale, "textNo")))
+                        Button.secondary("cancel", lm.getText(locale, "textNo")))
                 .setEphemeral(true).queue();
     }
 
     // setup command
     private void setupCommand(SlashCommandInteractionEvent event, Locale locale) {
-        String userId = event.getUser().getId();
         event.replyEmbeds(Utils.getSetupEmbed(lm, locale))
-                .addActionRow(Utils.getSetupSelectMenu(lm, locale, userId, null))
+                .addActionRow(Utils.getSetupSelectMenu(lm, locale, null))
                 .setEphemeral(true).queue();
     }
 
     // guild setup
     private void setup(StringSelectInteractionEvent event, Locale locale) {
-        String userId = event.getUser().getId();
         SetupOption option = SetupOption.valueOf(event.getValues().get(0));
 
         List<ItemComponent> components = new ArrayList<ItemComponent>();
 
         switch (option) {
             case locale: // locale menu
-                StringSelectMenu.Builder localeMenuBuilder = StringSelectMenu.create(userId + ":localeMenu");
+                StringSelectMenu.Builder localeMenuBuilder = StringSelectMenu.create("localeMenu");
                 SettingSingleton settings = SettingSingleton.GetInstance();
                 Map<String, String> languagues = settings.getLanguagueNames();
                 settings.getLocalization().keySet().forEach(x -> {
@@ -236,7 +238,7 @@ public class SlashCommandListener extends ListenerAdapter {
                 break;
 
             default: // anything else (enable/disable buttons)
-                Button[] buttons = getSetupEnableDisableButtons(locale, userId, option);
+                Button[] buttons = getEnableDisableButtons(locale, option);
                 for (Button button : buttons) {
                     components.add(button);
                 }
@@ -245,7 +247,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
         // componenets to send
         List<LayoutComponent> layoutComponents = new ArrayList<LayoutComponent>();
-        layoutComponents.add(ActionRow.of(Utils.getSetupSelectMenu(lm, locale, userId, option)));
+        layoutComponents.add(ActionRow.of(Utils.getSetupSelectMenu(lm, locale, option)));
         if (!components.isEmpty()) {
             layoutComponents.add(ActionRow.of(components));
         }
@@ -256,14 +258,27 @@ public class SlashCommandListener extends ListenerAdapter {
     }
 
     // setup enable/disable buttons
-    private Button[] getSetupEnableDisableButtons(Locale locale, String userId, SetupOption option) {
+    private Button[] getEnableDisableButtons(Locale locale, SetupOption option) {
         String o = "";
         if (option != null) {
             o = ":" + option.name();
         }
-        Button[] components = new Button[] { Button.success(userId + ":enable" + o,
-                lm.getText(locale, "textEnable")),
-                Button.danger(userId + ":disable" + o, lm.getText(locale, "textDisable")) };
+        // buttons
+        Button[] components = new Button[] { Button.success("enable" + o, lm.getText(locale, "textEnable")),
+                Button.danger("disable" + o, lm.getText(locale, "textDisable")) };
+        return components;
+    }
+
+    // setup enable/disable buttons
+    private static Button[] getAllowDenyButtons(ILocalizationManager lm, Locale locale, ButtonOption option,
+            String username) {
+        String o = "";
+        if (option != null) {
+            o = ":" + option.name() + ":" + username;
+        }
+        // buttons
+        Button[] components = new Button[] { Button.success("allow" + o, lm.getText(locale, "textMcAccept")),
+                Button.danger("deny" + o, lm.getText(locale, "textMcDeny")) };
         return components;
     }
 
@@ -271,18 +286,23 @@ public class SlashCommandListener extends ListenerAdapter {
     // https://github.com/DV8FromTheWorld/JDA/blob/master/src/examples/java/SlashBotExample.java#L116
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
+        boolean defer = true;
+
+        // server locale
+        Locale locale = settings.getDefaultLocale();
+        if (event.isFromGuild()) {
+            locale = db.getGuildLocaleById(event.getGuild().getIdLong());
+        }
+
         String[] ids = event.getComponentId().split(":");
 
-        // check if the right user clicked, otherwise just ignore
-        if (!ids[0].equals(event.getUser().getId()))
+        // check if the user who is interacting is admin
+        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR))
             return;
-
-        // acknowledge the button was clicked, otherwise the interaction will fail
-        event.deferEdit().queue();
 
         TextChannel channel = (TextChannel) event.getChannel();
 
-        switch (ids[1]) {
+        switch (ids[0]) {
             // delete all messages
             case "deleteAll":
                 // delete the prompt message
@@ -296,7 +316,7 @@ public class SlashCommandListener extends ListenerAdapter {
                 // delete the prompt message
                 event.getHook().deleteOriginal().queue();
 
-                String count = ids[2]; // number of messages to delete
+                String count = ids[1]; // number of messages to delete
                 deleteMessageCount(event.getMessageIdLong(), channel, Integer.parseInt(count));
                 break;
 
@@ -307,7 +327,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
             // enabling
             case "enable":
-                switch (ids[2]) {
+                switch (ids[1]) {
 
                     // rss
                     case "rss":
@@ -323,7 +343,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
             // disabling
             case "disable":
-                switch (ids[2]) {
+                switch (ids[1]) {
 
                     // rss
                     case "rss":
@@ -336,6 +356,53 @@ public class SlashCommandListener extends ListenerAdapter {
                         break;
                 }
                 break;
+
+            // allow
+            case "allow":
+                defer = false;
+                switch (ids[1]) {
+
+                    // minecraft
+                    case "minecraftWhitelistRequest":
+                        DiscordGuild guild = db.getDiscordGuildWithMinecraftInfo(event.getGuild().getIdLong());
+                        // check if minecraft is enabled
+                        if (guild.getMinecraft()) {
+                            // check for valid config
+                            if (guild.getMinecraftServerAddress() != ""
+                                    && Utils.guildChannelWithIdExists(event.getGuild(),
+                                            guild.getMinecraftWhitelistChannelId())
+                                    &&
+                                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getMinecraftWhitelistedRoleId())
+                                    && guild.getMinecraftRconPassword() != "") {
+                                // add to whitelist
+                                String response = Utils.executeRconCommand(guild.getMinecraftServerAddress(),
+                                        guild.getMinecraftRconPassword(), "whitelist add " + ids[2]);
+                                // respond to user
+                                event.reply(String.format(lm.getText(locale, "textServerReturned"), event.getUser().getIdLong(), response)).queue();
+                            }
+                        } else {
+                            event.reply(lm.getText(locale, "textMcDisabled")).setEphemeral(true).queue();
+                        }
+                        break;
+                }
+                break;
+
+            // deny
+            case "deny":
+                defer = false;
+                switch (ids[1]) {
+
+                    // minecraft
+                    case "minecraftWhitelistRequest":
+                        event.reply(String.format(lm.getText(locale, "textMcRequestDenied"), event.getUser().getIdLong())).queue();
+                        break;
+                }
+                break;
+        }
+
+        // acknowledge the button was clicked, otherwise the interaction will fail
+        if (defer) {
+            event.deferEdit().queue();
         }
     }
 
@@ -351,14 +418,14 @@ public class SlashCommandListener extends ListenerAdapter {
 
         String[] ids = event.getComponentId().split(":");
 
-        // check if the right user clicked, otherwise just ignore
-        if (!ids[0].equals(event.getUser().getId()))
+        // check if the user who is interacting is admin
+        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR))
             return;
 
         // acknowledge the button was clicked, otherwise the interaction will fail
         event.deferEdit().queue();
 
-        switch (ids[1]) {
+        switch (ids[0]) {
             case "setupMenu": // guild setup
                 setup(event, locale);
                 break;
@@ -617,19 +684,23 @@ public class SlashCommandListener extends ListenerAdapter {
     // minecraft whitelist command
     private void requestMinecraftWhitelistCommand(SlashCommandInteractionEvent event, Locale locale) {
         DiscordGuild guild = db.getDiscordGuildWithMinecraftInfo(event.getGuild().getIdLong());
-        Pattern username = Pattern.compile("^[a-zA-Z0-9_]{2,16}$");
+        Pattern usernamePattern = Pattern.compile("^[a-zA-Z0-9_]{2,16}$");
         OptionMapping usernameOption = event.getOption("username");
         // check if minecraft is enabled
         if (guild.getMinecraft()) {
             // check for valid config
             if (guild.getMinecraftServerAddress() != ""
                     && Utils.guildChannelWithIdExists(event.getGuild(), guild.getMinecraftWhitelistChannelId()) &&
-                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getMinecraftWhitelistedRoleId())) {
+                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getMinecraftWhitelistedRoleId())
+                    && guild.getMinecraftRconPassword() != "") {
                 // check if this is the right channel
                 if (event.getChannelIdLong() == guild.getMinecraftWhitelistChannelId()) {
-                    if (username.matcher(usernameOption.getAsString()).matches()) {
-                        event.reply(
-                                String.format(lm.getText(locale, "textMcRequest"), usernameOption.getAsString()))
+                    if (usernamePattern.matcher(usernameOption.getAsString()).matches()) {
+                        // send allow/deny request message
+                        Button[] buttons = getAllowDenyButtons(lm, locale, ButtonOption.minecraftWhitelistRequest,
+                                usernameOption.getAsString());
+                        event.replyEmbeds(Utils.getMinecraftRequestEmbed(usernameOption.getAsString(), lm, locale))
+                                .addActionRow(buttons)
                                 .queue();
                     } else {
                         event.reply(lm.getText(locale, "textMcInvalidUsername")).setEphemeral(true).queue();
@@ -639,11 +710,21 @@ public class SlashCommandListener extends ListenerAdapter {
                             guild.getMinecraftWhitelistChannelId())).setEphemeral(true).queue();
                 }
             } else {
-                event.reply(lm.getText(locale, "textMcInvalidConfig")).setEphemeral(true).queue();
+                event.reply(lm.getText(locale, "textMcInvalidConfig")).queue();
             }
         } else {
             event.reply(lm.getText(locale, "textMcDisabled")).setEphemeral(true).queue();
         }
+    }
+
+    // minecraft remove server command
+    private void setMinecraftServerRconPasswordCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // server option
+        OptionMapping passwordOption = event.getOption("password");
+        db.updateMinecraftRconPasswordById(event.getGuild().getIdLong(),
+                passwordOption.getAsString());
+        event.reply(lm.getText(locale, "textRconPasswordSet"))
+                .setEphemeral(true).queue();
     }
 
     /* Developer commands */

@@ -478,4 +478,22 @@ public class Database implements IDatabase {
             return null;
         }
     }
+
+    // set rcon password
+    @Override
+    public void updateMinecraftRconPasswordById(long guildId, String password) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("minecraftRconPassword", password));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setMinecraftRconPassword(password);
+            collection.insertOne(guild);
+        }
+    }
 }

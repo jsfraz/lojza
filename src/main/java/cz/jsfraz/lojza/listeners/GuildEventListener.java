@@ -74,9 +74,8 @@ public class GuildEventListener extends ListenerAdapter {
             case "setup": // setup button
                 // check if user has permissions
                 if (event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
-                    String userId = event.getUser().getId();
                     event.replyEmbeds(Utils.getSetupEmbed(lm, locale))
-                            .addActionRow(Utils.getSetupSelectMenu(lm, locale, userId, null))
+                            .addActionRow(Utils.getSetupSelectMenu(lm, locale, null))
                             .setEphemeral(true).queue();
                 } else {
                     event.reply(lm.getText(locale, "textNotAdmin")).setEphemeral(true).queue();
