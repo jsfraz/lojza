@@ -297,8 +297,15 @@ public class SlashCommandListener extends ListenerAdapter {
         String[] ids = event.getComponentId().split(":");
 
         // check if the user who is interacting is admin
-        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR))
+        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+            event.getUser().openPrivateChannel().flatMap(x -> x
+                    .sendMessage(
+                            MessageCreateData.fromContent(
+                                    lm.getText(settings.getDefaultLocale(), "textNotAdmin"))))
+                    .queue();
+            event.deferEdit().queue();
             return;
+        }
 
         TextChannel channel = (TextChannel) event.getChannel();
 
@@ -378,7 +385,8 @@ public class SlashCommandListener extends ListenerAdapter {
                                 String response = Utils.executeRconCommand(guild.getMinecraftServerAddress(),
                                         guild.getMinecraftRconPassword(), "whitelist add " + ids[2]);
                                 // respond to user
-                                event.reply(String.format(lm.getText(locale, "textServerReturned"), event.getUser().getIdLong(), response)).queue();
+                                event.reply(String.format(lm.getText(locale, "textServerReturned"),
+                                        event.getUser().getIdLong(), response)).queue();
                             }
                         } else {
                             event.reply(lm.getText(locale, "textMcDisabled")).setEphemeral(true).queue();
@@ -394,7 +402,9 @@ public class SlashCommandListener extends ListenerAdapter {
 
                     // minecraft
                     case "minecraftWhitelistRequest":
-                        event.reply(String.format(lm.getText(locale, "textMcRequestDenied"), event.getUser().getIdLong())).queue();
+                        event.reply(
+                                String.format(lm.getText(locale, "textMcRequestDenied"), event.getUser().getIdLong()))
+                                .queue();
                         break;
                 }
                 break;
@@ -419,8 +429,15 @@ public class SlashCommandListener extends ListenerAdapter {
         String[] ids = event.getComponentId().split(":");
 
         // check if the user who is interacting is admin
-        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR))
+        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+            event.getUser().openPrivateChannel().flatMap(x -> x
+                    .sendMessage(
+                            MessageCreateData.fromContent(
+                                    lm.getText(settings.getDefaultLocale(), "textNotAdmin"))))
+                    .queue();
+            event.deferEdit().queue();
             return;
+        }
 
         // acknowledge the button was clicked, otherwise the interaction will fail
         event.deferEdit().queue();
