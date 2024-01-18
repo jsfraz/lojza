@@ -354,9 +354,10 @@ public class Lojza {
 
                 // JDA instance
                 JDABuilder builder = JDABuilder.createDefault(settings.getDiscordToken());
-                JDA jda = builder.addEventListeners(new SlashCommandListener())
-                                .addEventListeners(new GuildEventListener())
-                                .addEventListeners(new SessionEventListener()).build();
+                JDA jda = builder.addEventListeners(
+                                new SlashCommandListener(),
+                                new GuildEventListener(),
+                                new SessionEventListener()).build();
 
                 // updating bot commands (might take a few minutes to be applied)
                 CommandListUpdateAction commands = jda.updateCommands();

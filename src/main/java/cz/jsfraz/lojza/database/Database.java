@@ -462,4 +462,20 @@ public class Database implements IDatabase {
             collection.insertOne(guild);
         }
     }
+
+    // get discord guild by id only with minecraft data
+    @Override
+    public DiscordGuild getDiscordGuildWithMinecraftInfo(long guildId) {
+        try {
+            // gets guild by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("minecraftServerAddress", "minecraftWhitelistChannelId", "minecraftWhitelistedRoleId", "minecraft", "minecraftRconPassword"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            return guild;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

@@ -55,4 +55,6 @@ public interface IDatabase {
     public void updateMinecraftRoleById(long guildId, long roleId);
 
     public void updateMinecraftById(long guildId, boolean value);
+
+    public DiscordGuild getDiscordGuildWithMinecraftInfo(long guildId);
 }

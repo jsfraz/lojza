@@ -37,6 +37,7 @@ import cz.jsfraz.lojza.database.models.DiscordGuild;
 import cz.jsfraz.lojza.database.models.Locale;
 import cz.jsfraz.lojza.database.models.RssFeed;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.Command.Type;
@@ -45,6 +46,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import nl.vv32.rcon.Rcon;
 
 public class Utils {
     // gets localization from resource folder
@@ -180,7 +182,7 @@ public class Utils {
     public static MessageEmbed getSetupEmbed(ILocalizationManager lm, Locale locale) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(Color.decode("#2b2d31"));
-        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"),false);
+        eb.addField(lm.getText(locale, "textSetupTitle"), lm.getText(locale, "textSetupDesc"), false);
         return eb.build();
     }
 
@@ -313,5 +315,26 @@ public class Utils {
         }
 
         return text;
+    }
+
+    // execute rcon command
+    public static String executeRconCommand(String host, String password, String command) {
+        try (Rcon rcon = Rcon.open(host, 25575)) {
+            if (rcon.authenticate(password)) {
+                return rcon.sendCommand(command);
+            } else {
+                return "Failed to authenticate";
+            }
+        } catch (Exception e) {
+            return e.getLocalizedMessage();
+        }
+    }
+
+    public static boolean guildChannelWithIdExists(Guild guild, long channelId) {
+        return guild.getChannels().stream().filter(x -> x.getIdLong() == channelId).findFirst() != null;
+    }
+
+    public static boolean guildRoleWithIdExists(Guild guild, long roleId) {
+        return guild.getRoles().stream().filter(x -> x.getIdLong() == roleId).findFirst() != null;
     }
 }

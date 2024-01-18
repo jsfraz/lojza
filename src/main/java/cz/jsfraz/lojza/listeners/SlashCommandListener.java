@@ -17,6 +17,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 
 import cz.jsfraz.lojza.database.Database;
 import cz.jsfraz.lojza.database.IDatabase;
+import cz.jsfraz.lojza.database.models.DiscordGuild;
 import cz.jsfraz.lojza.database.models.Locale;
 import cz.jsfraz.lojza.database.models.RssFeed;
 import cz.jsfraz.lojza.utils.ILocalizationManager;
@@ -615,7 +616,34 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // minecraft whitelist command
     private void requestMinecraftWhitelistCommand(SlashCommandInteractionEvent event, Locale locale) {
-        // TODO requestMinecraftWhitelistCommand
+        DiscordGuild guild = db.getDiscordGuildWithMinecraftInfo(event.getGuild().getIdLong());
+        Pattern username = Pattern.compile("^[a-zA-Z0-9_]{2,16}$");
+        OptionMapping usernameOption = event.getOption("username");
+        // check if minecraft is enabled
+        if (guild.getMinecraft()) {
+            // check for valid config
+            if (guild.getMinecraftServerAddress() != ""
+                    && Utils.guildChannelWithIdExists(event.getGuild(), guild.getMinecraftWhitelistChannelId()) &&
+                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getMinecraftWhitelistedRoleId())) {
+                // check if this is the right channel
+                if (event.getChannelIdLong() == guild.getMinecraftWhitelistChannelId()) {
+                    if (username.matcher(usernameOption.getAsString()).matches()) {
+                        event.reply(
+                                String.format(lm.getText(locale, "textMcRequest"), usernameOption.getAsString()))
+                                .queue();
+                    } else {
+                        event.reply(lm.getText(locale, "textMcInvalidUsername")).setEphemeral(true).queue();
+                    }
+                } else {
+                    event.reply(String.format(lm.getText(locale, "textMcInvalidChannel"),
+                            guild.getMinecraftWhitelistChannelId())).setEphemeral(true).queue();
+                }
+            } else {
+                event.reply(lm.getText(locale, "textMcInvalidConfig")).setEphemeral(true).queue();
+            }
+        } else {
+            event.reply(lm.getText(locale, "textMcDisabled")).setEphemeral(true).queue();
+        }
     }
 
     /* Developer commands */

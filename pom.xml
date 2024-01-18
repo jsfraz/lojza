@@ -55,6 +55,12 @@
       <artifactId>jsoup</artifactId>
       <version>1.17.2</version>
     </dependency>
+    <!-- RCON -->
+    <dependency>
+        <groupId>nl.vv32.rcon</groupId>
+        <artifactId>rcon</artifactId>
+        <version>1.2.0</version>
+    </dependency>
   </dependencies>
 
   <!-- Define project profiles (configurations for different environments) -->
