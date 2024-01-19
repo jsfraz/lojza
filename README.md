@@ -1,6 +1,6 @@
 # Lojza bot
 
-Discord bot who is quite Lojza. It has many features such as message deletion, Discord server settings, command localization and RSS feed subscription. And that's pretty much it in this version.
+Discord bot who is quite Lojza. He has many features such as message deletion, Discord server settings, command localization, RSS feed subscription, verification role management and Minecraft whitelist management.
 
 ![Commands](./commands.png)
 
