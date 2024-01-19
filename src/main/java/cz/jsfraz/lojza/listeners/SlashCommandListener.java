@@ -344,6 +344,22 @@ public class SlashCommandListener extends ListenerAdapter {
         TextChannel channel = (TextChannel) event.getChannel();
 
         switch (ids[0]) {
+            case "help": // help button
+                // reply with embed
+                event.replyEmbeds(Utils.getHelpEmbed(lm, locale)).setEphemeral(true).queue();
+                break;
+
+            case "setup": // setup button
+                // check if user has permissions
+                if (event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+                    event.replyEmbeds(Utils.getSetupEmbed(lm, locale))
+                            .addActionRow(Utils.getSetupSelectMenu(lm, locale, null))
+                            .setEphemeral(true).queue();
+                } else {
+                    event.reply(lm.getText(locale, "textNotAdmin")).setEphemeral(true).queue();
+                }
+                break;
+
             // delete all messages
             case "deleteAll":
                 // delete the prompt message
