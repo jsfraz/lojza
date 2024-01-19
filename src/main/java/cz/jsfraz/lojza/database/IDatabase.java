@@ -59,4 +59,16 @@ public interface IDatabase {
     public DiscordGuild getDiscordGuildWithMinecraftInfo(long guildId);
 
     public void updateMinecraftRconPasswordById(long guildId, String password);
+
+    public long getVerificationRoleById(long guildId);
+
+    public void updateVerificationRoleById(long guildId, long roleId);
+
+    public long getVerificationChannelById(long guildId);
+
+    public void updateVerificationChannelById(long guildId, long channelId);
+
+    public void updateVerificationById(long guildId, boolean value);
+
+    public DiscordGuild getDiscordGuildWithVerificationInfo(long guildId);
 }

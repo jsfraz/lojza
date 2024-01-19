@@ -353,4 +353,13 @@ public class Utils {
                 false);
         return eb.build();
     }
+
+    // verification request embed
+    public static MessageEmbed getVerificationRequestEmbed(long userId, ILocalizationManager lm, Locale locale) {
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setColor(Color.decode("#2b2d31"));
+        eb.addField(lm.getText(locale, "textVerificationRequestTitle"), String.format(lm.getText(locale, "textVerificationRequest"), userId),
+                false);
+        return eb.build();
+    }
 }

@@ -16,6 +16,9 @@ public class DiscordGuild {
     private long minecraftWhitelistedRoleId;
     private boolean minecraft;
     private String minecraftRconPassword;
+    private long verificationRoleId;
+    private long verificationChannelId;
+    private boolean verification;
 
     public DiscordGuild() {
     }
@@ -31,6 +34,9 @@ public class DiscordGuild {
         this.minecraftWhitelistedRoleId = 0;
         this.minecraft = false;
         this.minecraftRconPassword = "";
+        this.verificationRoleId = 0;
+        this.verificationChannelId = 0;
+        this.verification = false;
     }
 
     public long getGuildId() {
@@ -111,5 +117,29 @@ public class DiscordGuild {
 
     public void setMinecraftRconPassword(String password) {
         this.minecraftRconPassword = password;
+    }
+
+    public long getVerificationRoleId() {
+        return this.verificationRoleId;
+    }
+
+    public void setVerificationRoleId(long id) {
+        this.verificationRoleId = id;
+    }
+
+    public long getVerificationChannelId() {
+        return this.verificationChannelId;
+    }
+
+    public void setVerificationChannelId(long id) {
+        this.verificationChannelId = id;
+    }
+
+    public boolean getVerification() {
+        return this.verification;
+    }
+
+    public void setVerification(boolean value) {
+        this.verification = value;
     }
 }

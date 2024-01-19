@@ -28,6 +28,17 @@
     "textServerReturned": "<@%s> server vrátil: %s",
     "textRconPasswordSet": "RCON heslo nastaveno.",
     "textMcRequestDenied": "<@%s> žádost zamítnuta :joy:",
+    "textNoVerificationRole": "Žádná role není nastavená.",
+    "textVerificationRoleSet": "Role pro verifikaci nastavena.",
+    "textVerificationRoleReset": "Role pro verifikaci resetována.",
+    "textEmptyVerificationChannel": "Žádný kanál pro verifikaci není nastavený.",
+    "textVerificationChannelSet": "Kanál pro verifikace nastaven.",
+    "textVerificationChannelReset": "Kanál pro verifikace resetován.",
+    "textVerificationDisabled": "Verifikace je na tomhle serveru zakázáná.",
+    "textVerificationInvalidConfig": "Nějakej lenoch nedokonfiguroval verifikování.",
+    "textVerificationRequestTitle": "Žádost o verifikaci",
+    "textVerificationRequest": "<@%s> žádá o verifikaci.",
+    "textVerified": "<@%s> je nyní verifikován/a.",
     "textStatusTitle": "Stav",
     "textOsTitle": "Operační systém",
     "textJavaVerTitle": "Verze Javy",
@@ -68,5 +79,6 @@
     "categoryDev": "Vývoj",
     "optionLocale": "Jazyk",
     "optionRss": "RSS kanály",
-    "optionMinecraft": "Minecraft"
+    "optionMinecraft": "Minecraft",
+    "optionVerification": "Verifikace uživatelů"
 }

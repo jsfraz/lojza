@@ -28,6 +28,8 @@ import cz.jsfraz.lojza.utils.SetupOption;
 import cz.jsfraz.lojza.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -96,6 +98,34 @@ public class SlashCommandListener extends ListenerAdapter {
 
             case "rss clear": // clear rss feed list command
                 rssClearCommand(event, locale);
+                break;
+
+            case "verification getrole": // gets verification role
+                getVerificationRoleCommand(event, locale);
+                break;
+
+            case "verification setrole": // sets verification role
+                setVerificationRoleCommand(event, locale);
+                break;
+
+            case "verification resetrole": // resets verification role
+                resetVerificationRoleCommand(event, locale);
+                break;
+
+            case "verification getchannel": // gets verification channel
+                getVerificationChannelCommand(event, locale);
+                break;
+
+            case "verification setchannel": // sets verification channel
+                setVerificationChannelCommand(event, locale);
+                break;
+
+            case "verification resetchannel": // resets verification channel
+                resetVerificationChannelCommand(event, locale);
+                break;
+
+            case "requestverification": // request verification
+                requestVerificationCommand(event, locale);
                 break;
 
             /* Fun commands */
@@ -271,10 +301,14 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // setup enable/disable buttons
     private static Button[] getAllowDenyButtons(ILocalizationManager lm, Locale locale, ButtonOption option,
-            String username) {
+            String... args) {
         String o = "";
         if (option != null) {
-            o = ":" + option.name() + ":" + username;
+            o = ":" + option.name();
+        }
+        // args
+        for (int i = 0; i < args.length; i++) {
+            o += ":" + args[i];
         }
         // buttons
         Button[] components = new Button[] { Button.success("allow" + o, lm.getText(locale, "textMcAccept")),
@@ -345,6 +379,11 @@ public class SlashCommandListener extends ListenerAdapter {
                     case "minecraft":
                         db.updateMinecraftById(event.getGuild().getIdLong(), true);
                         break;
+
+                    // verification
+                    case "verification":
+                        db.updateVerificationById(event.getGuild().getIdLong(), true);
+                        break;
                 }
                 break;
 
@@ -361,6 +400,11 @@ public class SlashCommandListener extends ListenerAdapter {
                     case "minecraft":
                         db.updateMinecraftById(event.getGuild().getIdLong(), false);
                         break;
+
+                    // verification
+                    case "verification":
+                        db.updateVerificationById(event.getGuild().getIdLong(), false);
+                        break;
                 }
                 break;
 
@@ -371,25 +415,58 @@ public class SlashCommandListener extends ListenerAdapter {
 
                     // minecraft
                     case "minecraftWhitelistRequest":
-                        DiscordGuild guild = db.getDiscordGuildWithMinecraftInfo(event.getGuild().getIdLong());
+                        DiscordGuild minecraftGuild = db.getDiscordGuildWithMinecraftInfo(event.getGuild().getIdLong());
                         // check if minecraft is enabled
-                        if (guild.getMinecraft()) {
+                        if (minecraftGuild.getMinecraft()) {
                             // check for valid config
-                            if (guild.getMinecraftServerAddress() != ""
+                            if (minecraftGuild.getMinecraftServerAddress() != ""
                                     && Utils.guildChannelWithIdExists(event.getGuild(),
-                                            guild.getMinecraftWhitelistChannelId())
+                                            minecraftGuild.getMinecraftWhitelistChannelId())
                                     &&
-                                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getMinecraftWhitelistedRoleId())
-                                    && guild.getMinecraftRconPassword() != "") {
+                                    Utils.guildRoleWithIdExists(event.getGuild(),
+                                            minecraftGuild.getMinecraftWhitelistedRoleId())
+                                    && minecraftGuild.getMinecraftRconPassword() != "") {
                                 // add to whitelist
-                                String response = Utils.executeRconCommand(guild.getMinecraftServerAddress(),
-                                        guild.getMinecraftRconPassword(), "whitelist add " + ids[2]);
+                                String response = Utils.executeRconCommand(minecraftGuild.getMinecraftServerAddress(),
+                                        minecraftGuild.getMinecraftRconPassword(), "whitelist add " + ids[2]);
+                                // add role to user
+                                Pattern whitelistedMsgPattern = Pattern.compile("^Added (.*?) to the whitelist$");
+                                if (whitelistedMsgPattern.matcher(response).matches()) {
+                                    Member member = event.getGuild().getMemberById(ids[3]);
+                                    Role role = event.getGuild()
+                                            .getRoleById(minecraftGuild.getMinecraftWhitelistedRoleId());
+                                    event.getGuild().addRoleToMember(member, role).queue();
+                                }
                                 // respond to user
                                 event.reply(String.format(lm.getText(locale, "textServerReturned"),
                                         event.getUser().getIdLong(), response)).queue();
                             }
                         } else {
                             event.reply(lm.getText(locale, "textMcDisabled")).setEphemeral(true).queue();
+                        }
+                        break;
+
+                    // verification
+                    case "verificationRequest":
+                        DiscordGuild verificationGuild = db
+                                .getDiscordGuildWithVerificationInfo(event.getGuild().getIdLong());
+                        // check if verification is enabled
+                        if (verificationGuild.getVerification()) {
+                            // check for valid config
+                            if (Utils.guildChannelWithIdExists(event.getGuild(),
+                                    verificationGuild.getVerificationChannelId())
+                                    &&
+                                    Utils.guildRoleWithIdExists(event.getGuild(),
+                                            verificationGuild.getVerificationRoleId())) {
+                                // add role to user
+                                Member member = event.getGuild().getMemberById(ids[2]);
+                                Role role = event.getGuild().getRoleById(verificationGuild.getVerificationRoleId());
+                                event.getGuild().addRoleToMember(member, role).queue();
+                                // respond to user
+                                event.reply(String.format(lm.getText(locale, "textVerified"), ids[2])).queue();
+                            }
+                        } else {
+                            event.reply(lm.getText(locale, "textVerificationDisabled")).setEphemeral(true).queue();
                         }
                         break;
                 }
@@ -402,6 +479,13 @@ public class SlashCommandListener extends ListenerAdapter {
 
                     // minecraft
                     case "minecraftWhitelistRequest":
+                        event.reply(
+                                String.format(lm.getText(locale, "textMcRequestDenied"), event.getUser().getIdLong()))
+                                .queue();
+                        break;
+
+                    // verification
+                    case "verificationRequest":
                         event.reply(
                                 String.format(lm.getText(locale, "textMcRequestDenied"), event.getUser().getIdLong()))
                                 .queue();
@@ -609,6 +693,80 @@ public class SlashCommandListener extends ListenerAdapter {
         event.reply(lm.getText(locale, "textRssCleared")).setEphemeral(true).queue();
     }
 
+    // get minecraft role command
+    private void getVerificationRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long roleId = db.getVerificationRoleById(event.getGuild().getIdLong());
+        if (roleId != 0) {
+            event.reply("<@&" + roleId + ">").setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textNoVerificationRole")).setEphemeral(true).queue();
+        }
+    }
+
+    // minecraft role command
+    private void setVerificationRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        // server option
+        OptionMapping roleOption = event.getOption("role");
+        db.updateVerificationRoleById(event.getGuild().getIdLong(), roleOption.getAsRole().getIdLong());
+        event.reply(lm.getText(locale, "textVerificationRoleSet")).setEphemeral(true).queue();
+    }
+
+    // minecraft reset role command
+    private void resetVerificationRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateVerificationRoleById(event.getGuild().getIdLong(), 0);
+        event.reply(lm.getText(locale, "textVerificationRoleReset")).setEphemeral(true).queue();
+    }
+
+    // get verification channel command
+    private void getVerificationChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        long channelId = db.getVerificationChannelById(event.getGuild().getIdLong());
+        if (channelId != 0) {
+            event.reply("<@" + channelId + ">").setEphemeral(true).queue();
+        } else {
+            event.reply(lm.getText(locale, "textEmptyVerificationChannel")).setEphemeral(true).queue();
+        }
+    }
+
+    // minecraft channel command
+    private void setVerificationChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateVerificationChannelById(event.getGuild().getIdLong(), event.getChannelIdLong());
+        event.reply(lm.getText(locale, "textVerificationChannelSet")).setEphemeral(true).queue();
+    }
+
+    // minecraft reset channel command
+    private void resetVerificationChannelCommand(SlashCommandInteractionEvent event, Locale locale) {
+        db.updateVerificationChannelById(event.getGuild().getIdLong(), 0);
+        event.reply(lm.getText(locale, "textVerificationChannelReset")).setEphemeral(true).queue();
+    }
+
+    // minecraft whitelist command
+    private void requestVerificationCommand(SlashCommandInteractionEvent event, Locale locale) {
+        DiscordGuild guild = db.getDiscordGuildWithVerificationInfo(event.getGuild().getIdLong());
+        // check if verification is enabled
+        if (guild.getVerification()) {
+            // check for valid config
+            if (Utils.guildChannelWithIdExists(event.getGuild(), guild.getVerificationChannelId()) &&
+                    Utils.guildRoleWithIdExists(event.getGuild(), guild.getVerificationRoleId())) {
+                // check if this is the right channel
+                if (event.getChannelIdLong() == guild.getVerificationChannelId()) {
+                    // send allow/deny request message
+                    Button[] buttons = getAllowDenyButtons(lm, locale, ButtonOption.verificationRequest,
+                            event.getUser().getId());
+                    event.replyEmbeds(Utils.getVerificationRequestEmbed(event.getMember().getIdLong(), lm, locale))
+                            .addActionRow(buttons)
+                            .queue();
+                } else {
+                    event.reply(String.format(lm.getText(locale, "textMcInvalidChannel"),
+                            guild.getVerificationChannelId())).setEphemeral(true).queue();
+                }
+            } else {
+                event.reply(lm.getText(locale, "textVerificationInvalidConfig")).queue();
+            }
+        } else {
+            event.reply(lm.getText(locale, "textVerificationDisabled")).setEphemeral(true).queue();
+        }
+    }
+
     /* Fun commands */
 
     // greet command
@@ -678,7 +836,7 @@ public class SlashCommandListener extends ListenerAdapter {
     private void getMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
         long roleId = db.getMinecraftRoleById(event.getGuild().getIdLong());
         if (roleId != 0) {
-            event.reply("<@" + roleId + ">").setEphemeral(true).queue();
+            event.reply("<@&" + roleId + ">").setEphemeral(true).queue();
         } else {
             event.reply(lm.getText(locale, "textNoMcRole")).setEphemeral(true).queue();
         }
@@ -694,7 +852,7 @@ public class SlashCommandListener extends ListenerAdapter {
 
     // minecraft reset role command
     private void resetMinecraftRoleCommand(SlashCommandInteractionEvent event, Locale locale) {
-        db.updateMinecraftChannelById(event.getGuild().getIdLong(), 0);
+        db.updateMinecraftRoleById(event.getGuild().getIdLong(), 0);
         event.reply(lm.getText(locale, "textMcRoleReset")).setEphemeral(true).queue();
     }
 
@@ -715,7 +873,7 @@ public class SlashCommandListener extends ListenerAdapter {
                     if (usernamePattern.matcher(usernameOption.getAsString()).matches()) {
                         // send allow/deny request message
                         Button[] buttons = getAllowDenyButtons(lm, locale, ButtonOption.minecraftWhitelistRequest,
-                                usernameOption.getAsString());
+                                usernameOption.getAsString(), event.getUser().getId());
                         event.replyEmbeds(Utils.getMinecraftRequestEmbed(usernameOption.getAsString(), lm, locale))
                                 .addActionRow(buttons)
                                 .queue();

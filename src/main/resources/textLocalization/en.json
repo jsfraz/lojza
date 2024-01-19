@@ -28,6 +28,17 @@
     "textServerReturned": "<@%s> server returned: %s",
     "textRconPasswordSet": "RCON password set.",
     "textMcRequestDenied": "<@%s> request denied :joy:",
+    "textNoVerificationRole": "No role is set.",
+    "textVerificationRoleSet": "Verification role set.",
+    "textVerificationRoleReset": "Verification role reset.",
+    "textEmptyVerificationChannel": "No verification channel is set.",
+    "textVerificationChannelSet": "Verification channel set.",
+    "textVerificationChannelReset": "Verification channel reset.",
+    "textVerificationDisabled": "Verification is disabled on this server.",
+    "textVerificationInvalidConfig": "Some slacker didn't configure verification.",
+    "textVerificationRequestTitle": "Verification request",
+    "textVerificationRequest":"<@%s> is requesting verification.",
+    "textVerified": "<@%s> is now verified.",
     "textStatusTitle": "Status",
     "textOsTitle": "Operating system",
     "textJavaVerTitle": "Java version",
@@ -68,5 +79,6 @@
     "categoryDev": "Developement",
     "optionLocale": "Language",
     "optionRss": "RSS channels",
-    "optionMinecraft": "Minecraft"
+    "optionMinecraft": "Minecraft",
+    "optionVerification": "User verification"
 }

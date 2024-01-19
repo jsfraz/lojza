@@ -106,7 +106,13 @@ public class Lojza {
                                 new CommandSet(CommandCategory.categoryHelp, ":information_source:", new CommandData[] {
                                                 // help command
                                                 Commands.slash("help", "Shows available commands for this bot.")
+                                                                .setLocalizationFunction(localizationFunction),
+                                                // TODO localize
+                                                // verification command
+                                                Commands.slash("requestverification", "Requests user verification.")
                                                                 .setLocalizationFunction(localizationFunction)
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
                                 }),
                                 // admin commands
                                 new CommandSet(CommandCategory.categoryAdmin, ":shield:", new CommandData[] {
@@ -197,7 +203,39 @@ public class Lojza {
                                                                                                 "Clears RSS feed list.")
 
                                                                 )
-
+                                                                // guild-only command
+                                                                .setGuildOnly(true)
+                                                                // admin-only command
+                                                                .setDefaultPermissions(DefaultMemberPermissions
+                                                                                .enabledFor(Permission.ADMINISTRATOR)),
+                                                // TODO localize
+                                                // whitelist role commands
+                                                Commands.slash("verification", "Manage verification.")
+                                                                .setLocalizationFunction(localizationFunction)
+                                                                .addSubcommands(
+                                                                                // get role
+                                                                                new SubcommandData("getrole",
+                                                                                                "Gets verification role."),
+                                                                                // set role
+                                                                                new SubcommandData("setrole",
+                                                                                                "Sets verification role.")
+                                                                                                .addOptions(new OptionData(
+                                                                                                                OptionType.ROLE,
+                                                                                                                "role",
+                                                                                                                "Verification role.")
+                                                                                                                .setRequired(true)),
+                                                                                // reset role
+                                                                                new SubcommandData("resetrole",
+                                                                                                "Resets verification role."),
+                                                                                // get channel
+                                                                                new SubcommandData("getchannel",
+                                                                                                "Gets verification role."),
+                                                                                // set channel
+                                                                                new SubcommandData("setchannel",
+                                                                                                "Sets the current text channel for verification requests."),
+                                                                                // reset channel
+                                                                                new SubcommandData("resetchannel",
+                                                                                                "Resets text channel for verification requests."))
                                                                 // guild-only command
                                                                 .setGuildOnly(true)
                                                                 // admin-only command
@@ -211,6 +249,7 @@ public class Lojza {
                                                                 "He just says hi, like I don't know what else to write here.")
                                                                 .setLocalizationFunction(localizationFunction)
                                 }),
+                                // TODO localize
                                 // minecraft commands
                                 new CommandSet(CommandCategory.categoryMinecraft, ":pick:", new CommandData[] {
 

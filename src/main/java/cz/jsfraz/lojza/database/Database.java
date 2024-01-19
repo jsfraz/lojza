@@ -496,4 +496,118 @@ public class Database implements IDatabase {
             collection.insertOne(guild);
         }
     }
+
+    // gets verification role
+    @Override
+    public long getVerificationRoleById(long guildId) {
+        try {
+            // gets guild role id by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("verificationRoleId"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return 0;
+            } else {
+                // if exists return
+                return guild.getVerificationRoleId();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // update verification role
+    @Override
+    public void updateVerificationRoleById(long guildId, long roleId) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("verificationRoleId", roleId));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setVerificationRoleId(roleId);
+            collection.insertOne(guild);
+        }
+    }
+
+    // gets verification channel
+    @Override
+    public long getVerificationChannelById(long guildId) {
+        try {
+            // gets guild minecraft channel id by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("verificationChannelId"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            if (guild == null) {
+                // if doesn't exist in database, return default
+                return 0;
+            } else {
+                // if exists return
+                return guild.getVerificationChannelId();
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // update verification channel
+    @Override
+    public void updateVerificationChannelById(long guildId, long channelId) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("verificationChannelId", channelId));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setVerificationChannelId(channelId);
+            collection.insertOne(guild);
+        }
+    }
+
+    // updates DiscordGuild verification
+    @Override
+    public void updateVerificationById(long guildId, boolean value) {
+        // gets guild by id
+        DiscordGuild guild = getFirstOrDefault(guildId);
+
+        MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+        if (guild != null) {
+            // update if exists
+            collection.updateOne(Filters.eq("guildId", guildId), Updates.set("verification", value));
+        } else {
+            // insert if doesn't exist
+            guild = new DiscordGuild(guildId, SettingSingleton.GetInstance().getDefaultLocale());
+            guild.setVerification(value);
+            collection.insertOne(guild);
+        }
+    }
+
+    // get discord guild by id only with erification data
+    @Override
+    public DiscordGuild getDiscordGuildWithVerificationInfo(long guildId) {
+        try {
+            // gets guild by id
+            MongoCollection<DiscordGuild> collection = getDiscordGuildCollection();
+            Bson filter = Filters.eq("guildId", guildId);
+            Bson projection = Projections.fields(Projections.include("verificationChannelId", "verificationRoleId", "verification"));
+            DiscordGuild guild = collection.find(filter).projection(projection).first();
+
+            return guild;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
