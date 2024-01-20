@@ -34,6 +34,8 @@ services:
       # Connect the service to the 'lojza' network.
       - lojza
     image: jsfraz/lojza:1.0.0
+    depends_on:
+      - "lojza-mongo"
 
 # Define named volumes for persisting data across container restarts.
 volumes:
